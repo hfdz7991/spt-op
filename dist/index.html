@@ -18,7 +18,7 @@
       color-scheme: light;
       --bg: #F3F5FA;
       --surface: #FFFFFF;
-      --surface-soft: #F7F9FD;
+      --surface-soft: #F4F6FC;
       --surface-muted: #EDF0F8;
       --border: #DCE1EE;
       --border-strong: #C5CEE4;
@@ -275,7 +275,6 @@
        ========================================================================= */
     .card {
       background: var(--surface);
-      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-md);
       padding: 20px;
@@ -405,7 +404,6 @@
       padding: 9px 12px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       font-size: 13.5px;
       color: var(--text-secondary);
       line-height: 1.5;
@@ -600,15 +598,14 @@
     }
 
     .bupot-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--surface-soft);
       border-radius: var(--radius-md);
       padding: 16px;
-      transition: border-color 0.15s ease;
+      transition: background 0.15s ease;
     }
 
     .bupot-card:focus-within {
-      border-color: var(--border-strong);
+      background: var(--surface-muted);
     }
 
     .bupot-head {
@@ -775,7 +772,6 @@
       padding: 9px 12px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.5;
@@ -801,7 +797,6 @@
       padding: 11px 12px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       cursor: pointer;
       user-select: none;
     }
@@ -856,7 +851,6 @@
       margin: 0 auto 14px;
       border-radius: 14px;
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       color: var(--text-muted);
       display: flex;
       align-items: center;
@@ -911,13 +905,12 @@
     .hero-box {
       border-radius: var(--radius-md);
       padding: 18px;
-      border: 1px solid var(--border);
       margin-bottom: 14px;
     }
 
-    .hero-box.status-kb { background: var(--rose-bg); border-color: var(--rose-border); }
-    .hero-box.status-nihil { background: var(--emerald-bg); border-color: var(--emerald-border); }
-    .hero-box.status-lb { background: var(--blue-bg); border-color: var(--blue-border); }
+    .hero-box.status-kb { background: var(--rose-bg); }
+    .hero-box.status-nihil { background: var(--emerald-bg); }
+    .hero-box.status-lb { background: var(--blue-bg); }
 
     .hero-label {
       font-size: 12.5px;
@@ -949,7 +942,6 @@
       padding: 8px 10px;
       border-radius: var(--radius-sm);
       background: var(--surface);
-      border: 1px solid var(--rose-border);
       font-size: 13px;
       color: var(--text);
     }
@@ -975,12 +967,11 @@
     .hero-split-card {
       border-radius: var(--radius-md);
       padding: 14px;
-      border: 1px solid var(--border);
     }
 
-    .hero-split-card.status-kb { background: var(--rose-bg); border-color: var(--rose-border); }
-    .hero-split-card.status-nihil { background: var(--emerald-bg); border-color: var(--emerald-border); }
-    .hero-split-card.status-lb { background: var(--blue-bg); border-color: var(--blue-border); }
+    .hero-split-card.status-kb { background: var(--rose-bg); }
+    .hero-split-card.status-nihil { background: var(--emerald-bg); }
+    .hero-split-card.status-lb { background: var(--blue-bg); }
 
     .hero-split-head {
       display: flex;
@@ -1038,7 +1029,6 @@
     .soft-notice {
       border-radius: var(--radius-md);
       padding: 12px 14px;
-      border: 1px solid var(--border);
       background: var(--surface-soft);
       margin-bottom: 14px;
       font-size: 13.5px;
@@ -1047,13 +1037,11 @@
 
     .soft-notice.final-notice {
       background: var(--emerald-bg);
-      border-color: var(--emerald-border);
       color: var(--emerald-text);
     }
 
     .soft-notice.merged-notice {
       background: var(--amber-bg);
-      border-color: var(--amber-border);
       color: var(--amber-text);
     }
 
@@ -1196,7 +1184,6 @@
       margin-top: 14px;
       border-radius: var(--radius-md);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       padding: 12px 14px;
       font-size: 13.5px;
       color: var(--text-secondary);
@@ -1249,7 +1236,6 @@
       padding: 10px 12px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.5;
@@ -1264,7 +1250,6 @@
        ========================================================================= */
     .legal-accordion {
       background: var(--surface);
-      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
       overflow: hidden;
@@ -1344,7 +1329,6 @@
       padding: 11px 14px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       font-size: 13px;
       color: var(--text-secondary);
     }
@@ -1910,7 +1894,6 @@
       padding: 10px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
     }
 
     .month-cell label {
@@ -2053,7 +2036,6 @@
       padding: 8px 10px;
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
-      border: 1px solid var(--border);
       font-size: 13px;
       color: var(--text-secondary);
       flex-wrap: wrap;
@@ -2079,7 +2061,6 @@
 
     .monthly-breakdown-details {
       margin-top: 10px;
-      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--surface-soft);
       overflow: hidden;
@@ -2104,7 +2085,6 @@
       border-radius: var(--radius-md);
       padding: 13px 14px;
       background: var(--accent-soft);
-      border: 1px solid var(--accent-border);
       margin-bottom: 16px;
       font-size: 13.5px;
       color: var(--text);
@@ -2331,6 +2311,7 @@
       .card,
       .legal-accordion {
         box-shadow: none !important;
+        border: 1px solid #E2E6F0 !important;
         break-inside: avoid;
         page-break-inside: avoid;
         margin-bottom: 12px;
