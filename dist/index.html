@@ -2588,6 +2588,9 @@
             <!-- 1b. Ringkasan PPh Final UMKM 0,5% (jika ada usaha Final UMKM) -->
             <div id="final-umkm-summary" class="hidden"></div>
 
+            <!-- 1c. Ringkasan PPh 21 Final Karyawan (1721-VII pesangon/manfaat pensiun) -->
+            <div id="final-bupot-summary" class="hidden"></div>
+
             <!-- Info Khusus Penghasilan Istri (Status KK: Final / Final Gugur) -->
             <div id="wife-status-notice" class="hidden"></div>
 
@@ -2808,6 +2811,63 @@
       },
     ];
 
+    /**
+     * Jenis/form bukti potong karyawan (1721) pada Menu Karyawan.
+     * mode: 'normal'     -> pegawai tetap, neto = bruto - biaya jabatan, neto digabung & PPh 21 dikreditkan.
+     *       'nonpegawai' -> DPP = 50% x bruto (PMK 168/2023), tanpa biaya jabatan, neto digabung & PPh 21 dikreditkan.
+     *       'final'      -> PPh 21 final (PP 68/2009); penghasilan TIDAK digabung ke neto SPT & PPh TIDAK dikreditkan.
+     */
+    const BUPOT_TYPES = [
+      {
+        key: 'A1',
+        short: '1721-A1',
+        label: '1721-A1 — Pegawai Tetap Swasta / BUMN / BUMD',
+        mode: 'normal',
+        netoLabel: 'Penghasilan Neto Setahun (Rp)',
+        pphLabel: 'PPh Pasal 21 Telah Dipotong (Rp)',
+        brutoLabel: 'Penghasilan Bruto / Bulan (Rp)',
+        hint: 'Bukti potong pegawai tetap. Penghasilan neto digabung ke SPT Tahunan dan PPh 21 dapat dikreditkan (Pasal 28 UU PPh).',
+      },
+      {
+        key: 'A2',
+        short: '1721-A2',
+        label: '1721-A2 — Pegawai Tetap Instansi Pemerintah / ASN / TNI / Polri',
+        mode: 'normal',
+        netoLabel: 'Penghasilan Neto Setahun (Rp)',
+        pphLabel: 'PPh Pasal 21 Telah Dipotong (Rp)',
+        brutoLabel: 'Penghasilan Bruto / Bulan (Rp)',
+        hint: 'Bukti potong pegawai tetap instansi pemerintah. Perlakuan sama dengan 1721-A1: neto digabung & PPh 21 dikreditkan.',
+      },
+      {
+        key: 'VI',
+        short: '1721-VI',
+        label: '1721-VI — Bukan Pegawai / Pegawai Tidak Tetap / Tenaga Ahli',
+        mode: 'nonpegawai',
+        netoLabel: 'Penghasilan Neto Setahun (Rp)',
+        pphLabel: 'PPh Pasal 21 Telah Dipotong (Rp)',
+        brutoLabel: 'Penghasilan Bruto / Bulan (Rp)',
+        hint: 'Bukan pegawai: DPP = 50% × penghasilan bruto (PMK 168/2023), tanpa Biaya Jabatan & tanpa pengurang PTKP. Neto digabung & PPh 21 dikreditkan.',
+      },
+      {
+        key: 'VII',
+        short: '1721-VII',
+        label: '1721-VII — Pesangon / Manfaat Pensiun / THT-TJHT (Final)',
+        mode: 'final',
+        netoLabel: 'Jumlah Pesangon / Manfaat Pensiun Bruto (Rp)',
+        pphLabel: 'PPh Pasal 21 Final Telah Dipotong (Rp)',
+        brutoLabel: 'Jumlah Pesangon / Manfaat Pensiun Bruto (Rp)',
+        hint: 'PPh 21 bersifat FINAL (PP 68/2009). Penghasilan tidak digabung ke penghasilan neto SPT dan PPh 21 tidak dapat dikreditkan; dilaporkan pada Lampiran Penghasilan Final.',
+      },
+    ];
+
+    // Tarif PPh 21 Final atas pesangon/manfaat pensiun dibayar sekaligus (PP 68/2009).
+    const PESANGON_BRACKETS = [
+      { limit: 50000000, rate: 0 },
+      { limit: 100000000, rate: 0.05 },
+      { limit: 500000000, rate: 0.15 },
+      { limit: Infinity, rate: 0.25 },
+    ];
+
     const FOREIGN_INCOME_TYPES = [
       { key: 'dividen', label: 'Dividen' },
       { key: 'bunga', label: 'Bunga' },
@@ -2858,6 +2918,7 @@
       return {
         id: nextId++,
         owner,
+        bupotType: 'A1',       // 'A1' | 'A2' | 'VI' | 'VII' (lihat BUPOT_TYPES)
         name: '',
         mode: 'langsung',      // 'langsung' | 'bruto'
         // Nilai Mode Input Langsung
@@ -2933,6 +2994,31 @@
 
     function getCreditTaxMeta(key) {
       return CREDIT_TAX_TYPES.find((t) => t.key === key) || CREDIT_TAX_TYPES[0];
+    }
+
+    function getBupotMeta(key) {
+      return BUPOT_TYPES.find((t) => t.key === key) || BUPOT_TYPES[0];
+    }
+
+    function isBupotFinal(b) {
+      return getBupotMeta(b.bupotType).mode === 'final';
+    }
+
+    /**
+     * PPh 21 Final atas pesangon / manfaat pensiun dibayar sekaligus (PP 68/2009):
+     * 0% s.d. Rp 50 jt · 5% (>50-100 jt) · 15% (>100-500 jt) · 25% (>500 jt).
+     */
+    function computePesangonFinalTax(bruto) {
+      const total = Math.max(0, Number(bruto) || 0);
+      let tax = 0;
+      let lower = 0;
+      for (const br of PESANGON_BRACKETS) {
+        const upper = Math.min(total, br.limit);
+        if (upper > lower) tax += (upper - lower) * br.rate;
+        lower = br.limit;
+        if (total <= br.limit) break;
+      }
+      return Math.round(tax);
     }
 
     function estimatePph21BukanPegawai(bruto) {
@@ -3182,6 +3268,9 @@
      * TIDAK dihitung sebagai bukti potong aktif.
      */
     function computeBupot(b, statusOverride) {
+      const meta = getBupotMeta(b.bupotType);
+      const empPtkp = getEmployerPTKP(b.owner, statusOverride);
+
       if (b.mode === 'bruto') {
         const months = Math.max(1, Math.min(12, parseInt(b.months, 10) || 12));
         const brutoMonth = Math.max(0, b.brutoPerMonth || 0);
@@ -3191,44 +3280,121 @@
         if (totalBruto <= 0) {
           return {
             isActive: false,
+            isFinal: false,
+            bupotType: meta.key,
+            short: meta.short,
             neto: 0,
             pph: 0,
+            pphFinal: 0,
             totalBruto: 0,
             biayaJabatan: 0,
+            dpp: 0,
             months,
-            empPtkp: getEmployerPTKP(b.owner, statusOverride),
+            empPtkp,
           };
         }
 
+        // 1721-VII: PPh 21 FINAL pesangon/manfaat pensiun (PP 68/2009).
+        // Penghasilan final TIDAK digabung ke neto SPT dan PPh-nya TIDAK dikreditkan.
+        if (meta.mode === 'final') {
+          return {
+            isActive: true,
+            isFinal: true,
+            bupotType: meta.key,
+            short: meta.short,
+            neto: 0,
+            pph: 0,
+            pphFinal: computePesangonFinalTax(totalBruto),
+            totalBruto,
+            biayaJabatan: 0,
+            dpp: 0,
+            months,
+            empPtkp,
+          };
+        }
+
+        // 1721-VI: Bukan pegawai -> DPP = 50% x bruto (PMK 168/2023), tanpa Biaya Jabatan & tanpa PTKP.
+        if (meta.mode === 'nonpegawai') {
+          const dpp = Math.round(totalBruto * UMKM.BUKAN_PEGAWAI_DPP);
+          const neto = dpp;
+          const estPph = calcProgressiveTax(roundPKP(dpp)).totalTax;
+          return {
+            isActive: neto > 0,
+            isFinal: false,
+            bupotType: meta.key,
+            short: meta.short,
+            neto,
+            pph: estPph,
+            pphFinal: 0,
+            totalBruto,
+            biayaJabatan: 0,
+            dpp,
+            months,
+            empPtkp,
+          };
+        }
+
+        // 1721-A1 / 1721-A2: pegawai tetap.
         // Biaya Jabatan: 5% dari bruto, maks Rp 500.000/bulan (maks Rp 6.000.000/thn) sesuai PMK 168/2023
         const biayaJabatan = Math.min(Math.round(totalBruto * 0.05), months * 500000);
         const neto = Math.max(0, totalBruto - biayaJabatan);
-        const empPtkp = getEmployerPTKP(b.owner, statusOverride);
         const pkpEmp = roundPKP(Math.max(0, neto - empPtkp.amount));
         const estPph = calcProgressiveTax(pkpEmp).totalTax;
 
         return {
           isActive: neto > 0 || totalBruto > 0,
+          isFinal: false,
+          bupotType: meta.key,
+          short: meta.short,
           neto,
           pph: estPph,
+          pphFinal: 0,
           totalBruto,
           biayaJabatan,
+          dpp: neto,
           months,
           empPtkp,
         };
       }
 
       // Mode Input Langsung
-      const neto = Math.max(0, b.netoInput || 0);
-      const pph = Math.max(0, b.pphInput || 0);
+      const grossInput = Math.max(0, b.netoInput || 0);
+      const pphInput = Math.max(0, b.pphInput || 0);
+
+      // 1721-VII (final): angka hanya untuk pelaporan Lampiran Penghasilan Final,
+      // tidak menambah neto SPT dan tidak menambah kredit pajak.
+      if (meta.mode === 'final') {
+        return {
+          isActive: grossInput > 0 || pphInput > 0,
+          isFinal: true,
+          bupotType: meta.key,
+          short: meta.short,
+          neto: 0,
+          pph: 0,
+          pphFinal: pphInput,
+          totalBruto: grossInput,
+          biayaJabatan: 0,
+          dpp: 0,
+          months: 12,
+          empPtkp,
+        };
+      }
+
+      const neto = grossInput;
+      const pph = pphInput;
       return {
         isActive: neto > 0,
+        isFinal: false,
+        bupotType: meta.key,
+        short: meta.short,
         neto,
         pph,
+        pphFinal: 0,
         totalBruto: 0,
         biayaJabatan: 0,
+        dpp: neto,
         months: 12,
-        empPtkp: getEmployerPTKP(b.owner, statusOverride),
+        empPtkp,
       };
     }
 
@@ -3470,6 +3636,17 @@
       const bupotPphH = activeHusband.reduce((sum, item) => sum + item.pph, 0);
       const bupotPphW = activeWife.reduce((sum, item) => sum + item.pph, 0);
 
+      // ---- Bukti potong karyawan dengan PPh 21 FINAL (1721-VII pesangon/manfaat pensiun) ----
+      // Final: tidak menambah neto SPT, tidak menambah kredit pajak; hanya dilaporkan di Lampiran Penghasilan Final.
+      const bupotActiveAll = married ? [...activeHusband, ...activeWife] : activeHusband;
+      const bupotFinalRows = bupotActiveAll.filter((i) => i.isFinal);
+      const bupotFinalGross = bupotFinalRows.reduce((s, i) => s + i.totalBruto, 0);
+      const bupotFinalTax = bupotFinalRows.reduce((s, i) => s + i.pphFinal, 0);
+
+      // Label form bukti potong non-final yang aktif (1721-A1 / A2 / VI) untuk rincian kredit pajak.
+      const bupotFormLabel = [...new Set(bupotActiveAll.filter((i) => !i.isFinal).map((i) => i.short))].join(' / ')
+        || '1721-A1/A2';
+
       const netoH = bupotNetoH + bizNetoH + otherNetoH + foreignNetoH;
       const netoW = bupotNetoW + bizNetoW + otherNetoW + foreignNetoW;
 
@@ -3486,6 +3663,7 @@
         finalPaidH, finalPaidW, finalPaidTotal, finalDiff,
         bizNetoH, bizNetoW, bizCreditH, bizCreditW,
         bupotNetoH, bupotNetoW, bupotPphH, bupotPphW,
+        bupotFinalRows, bupotFinalGross, bupotFinalTax, bupotFormLabel,
         otherNetoH, otherNetoW,
         foreignNetoH, foreignNetoW,
         activeCreditsH, activeCreditsW,
@@ -3742,7 +3920,11 @@
         state.activeMenu = ['karyawan', 'usaha', 'kredit'].includes(parsed.activeMenu) ? parsed.activeMenu : 'karyawan';
 
         const bupots = Array.isArray(parsed.bupots) ? parsed.bupots : [];
-        state.bupots = bupots.map((b) => ({ ...createEmptyBupot(b.owner === 'wife' ? 'wife' : 'husband'), ...b, id: nextId++ }));
+        state.bupots = bupots.map((b) => {
+          const merged = { ...createEmptyBupot(b.owner === 'wife' ? 'wife' : 'husband'), ...b, id: nextId++ };
+          if (!BUPOT_TYPES.some((t) => t.key === merged.bupotType)) merged.bupotType = 'A1';
+          return merged;
+        });
 
         const biz = Array.isArray(parsed.businesses) ? parsed.businesses : [];
         state.businesses = biz.map((b) => {
@@ -4187,6 +4369,7 @@
       if (ownerCards.length > 1) {
         state.bupots = state.bupots.filter((b) => b.id !== id);
       } else {
+        target.bupotType = 'A1';
         target.name = '';
         target.netoInput = 0;
         target.pphInput = 0;
@@ -4208,6 +4391,34 @@
       if (mode === 'bruto' && (!b.months || b.months < 1 || b.months > 12)) {
         b.months = 12;
       }
+      renderBupotSection();
+      renderProfileUI();
+      renderResults();
+      persistSoon();
+    }
+
+    /**
+     * Ganti jenis/form bukti potong pada satu kartu (1721-A1 / A2 / VI / VII).
+     * Untuk 1721-VII (final pesangon): mode bruto memakai satu input jumlah pesangon (months=1, tanpa THR).
+     */
+    function setBupotType(id, type) {
+      const b = state.bupots.find((x) => x.id === id);
+      if (!b) return;
+      const key = BUPOT_TYPES.some((t) => t.key === type) ? type : 'A1';
+      if (b.bupotType === key) return;
+
+      const prevMeta = getBupotMeta(b.bupotType);
+      const nextMeta = getBupotMeta(key);
+      b.bupotType = key;
+
+      if (nextMeta.mode === 'final') {
+        b.months = 1;
+        b.thr = 0;
+      } else if (prevMeta.mode === 'final') {
+        b.months = 12;
+      }
+
+      updateSingleBrutoPreview(b);
       renderBupotSection();
       renderProfileUI();
       renderResults();
@@ -4266,11 +4477,36 @@
     }
 
     function buildBrutoPreviewHtml(b) {
+      const meta = getBupotMeta(b.bupotType);
       const comp = computeBupot(b);
       if (!comp.isActive) {
+        if (meta.mode === 'final') {
+          return 'Isi jumlah pesangon / manfaat pensiun bruto untuk melihat estimasi PPh 21 Final (tarif PP 68/2009).';
+        }
+        if (meta.mode === 'nonpegawai') {
+          return 'Isi penghasilan bruto per bulan untuk menghitung DPP 50% (PMK 168/2023) dan estimasi PPh 21 bukan pegawai.';
+        }
         return 'Isi Penghasilan Bruto per Bulan untuk menghitung Biaya Jabatan, Neto, dan estimasi PPh 21 secara otomatis.';
       }
       const isWifeMarried = b.owner === 'wife' && isMarried();
+
+      if (meta.mode === 'final') {
+        return `
+          Bruto Pesangon / Manfaat Pensiun: <strong>${formatRp(comp.totalBruto)}</strong> ·
+          Est. PPh 21 Final (PP 68/2009): <strong>${formatRp(comp.pphFinal)}</strong>
+          <span class="bruto-note">Bersifat FINAL: tidak digabung ke penghasilan neto SPT dan tidak dapat dikreditkan. Dilaporkan pada Lampiran Penghasilan Final.</span>
+        `;
+      }
+
+      if (meta.mode === 'nonpegawai') {
+        return `
+          DPP 50% × Bruto (Neto Setahun): <strong>${formatRp(comp.neto)}</strong> ·
+          Est. PPh 21 Dipotong: <strong>${formatRp(comp.pph)}</strong>
+          <span class="bruto-note">Bukan pegawai / pegawai tidak tetap: DPP = 50% × penghasilan bruto (PMK 168/2023), tanpa Biaya Jabatan dan tanpa pengurang PTKP.</span>
+          ${isWifeMarried ? '<span class="bruto-note">Pemotongan pemberi kerja karyawati kawin otomatis memakai PTKP TK/0 (Rp 54.000.000) sesuai Pasal 7 ayat (2) UU PPh &amp; PMK 168/2023.</span>' : ''}
+        `;
+      }
+
       return `
         Biaya Jabatan: <strong>${formatRp(comp.biayaJabatan)}</strong> ·
         Neto Setahun: <strong>${formatRp(comp.neto)}</strong> ·
@@ -4823,11 +5059,16 @@
       container.innerHTML = list.map((b, idx) => {
         const isBruto = b.mode === 'bruto';
         const showDelete = list.length > 1;
+        const meta = getBupotMeta(b.bupotType);
+        const isFinalType = meta.mode === 'final';
 
         return `
           <div class="bupot-card">
             <div class="bupot-head">
-              <span class="bupot-title">Bukti Potong #${idx + 1}</span>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="bupot-title">Bukti Potong #${idx + 1}</span>
+                <span class="credit-type-pill ${isFinalType ? 'pph24' : ''}">${meta.short}${isFinalType ? ' · Final' : ''}</span>
+              </div>
               <div class="bupot-head-right">
                 <div class="mode-switch" role="group" aria-label="Mode input bukti potong">
                   <button type="button" class="mode-btn ${!isBruto ? 'active' : ''}" onclick="setBupotMode(${b.id}, 'langsung')">Input Langsung</button>
@@ -4845,6 +5086,16 @@
 
             <div class="form-stack">
               <div>
+                <label class="field-label" for="btype-${b.id}">Jenis Bukti Potong</label>
+                <select id="btype-${b.id}" class="select-input" onchange="setBupotType(${b.id}, this.value)">
+                  ${BUPOT_TYPES.map((t) => `
+                    <option value="${t.key}" ${b.bupotType === t.key ? 'selected' : ''}>${t.label}</option>
+                  `).join('')}
+                </select>
+                <div class="field-hint ${isFinalType ? 'warn' : ''}">${meta.hint}</div>
+              </div>
+
+              <div>
                 <label class="field-label" for="name-${b.id}">Nama Pemberi Kerja (opsional)</label>
                 <input
                   id="name-${b.id}"
@@ -4860,7 +5111,7 @@
               ${!isBruto ? `
                 <div class="input-grid-2">
                   <div>
-                    <label class="field-label" for="neto-${b.id}">Penghasilan Neto Setahun (Rp)</label>
+                    <label class="field-label" for="neto-${b.id}">${meta.netoLabel}</label>
                     <div class="input-wrap">
                       <span class="input-prefix">Rp</span>
                       <input
@@ -4876,7 +5127,7 @@
                     </div>
                   </div>
                   <div>
-                    <label class="field-label" for="pph-${b.id}">PPh Pasal 21 Telah Dipotong (Rp)</label>
+                    <label class="field-label" for="pph-${b.id}">${meta.pphLabel}</label>
                     <div class="input-wrap">
                       <span class="input-prefix">Rp</span>
                       <input
@@ -4893,6 +5144,24 @@
                   </div>
                 </div>
               ` : `
+                ${isFinalType ? `
+                <div>
+                  <label class="field-label" for="bruto-${b.id}">${meta.brutoLabel}</label>
+                  <div class="input-wrap">
+                    <span class="input-prefix">Rp</span>
+                    <input
+                      id="bruto-${b.id}"
+                      type="text"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      class="text-input has-prefix tabular"
+                      value="${formatInputVal(b.brutoPerMonth)}"
+                      placeholder="0"
+                      oninput="handleMoneyField(${b.id}, 'brutoPerMonth', this)"
+                    />
+                  </div>
+                </div>
+                ` : `
                 <div class="input-grid-bruto">
                   <div>
                     <label class="field-label" for="bruto-${b.id}">Penghasilan Bruto / Bulan (Rp)</label>
@@ -4942,6 +5211,7 @@
                     </div>
                   </div>
                 </div>
+                `}
                 <div id="bruto-preview-${b.id}" class="bruto-preview tabular">
                   ${buildBrutoPreviewHtml(b)}
                 </div>
@@ -4996,7 +5266,7 @@
         </div>
         <div class="credit-summary-rows tabular">
           <div class="credit-summary-row">
-            <span>Dari Menu Karyawan (1721-A1/A2)</span>
+            <span>Dari Menu Karyawan (${calc.bupotFormLabel})</span>
             <strong>${isWifeKkFinal ? `Rp 0 (Final ${formatRp(calc.pphW)})` : formatRp(fromKaryawan)}</strong>
           </div>
           <div class="credit-summary-row">
@@ -5015,7 +5285,7 @@
           ` : ''}
         </div>
         <div class="field-hint" style="margin-top: 8px; color: var(--text-secondary);">
-          PPh yang bersifat <strong>Final</strong> (PPh Final UMKM 0,5%, PPh 4(2), PPh 21 honorarium APBN/APBD final, PPh 22 BBM final) tidak dapat dikreditkan.
+          PPh yang bersifat <strong>Final</strong> (PPh Final UMKM 0,5%, PPh 4(2), PPh 21 honorarium APBN/APBD final, PPh 22 BBM final, PPh 21 Final pesangon/manfaat pensiun 1721-VII) tidak dapat dikreditkan.
         </div>
       `;
     }
@@ -5568,6 +5838,7 @@
 
       renderHeroResult(calc);
       renderFinalUmkmSummary(calc);
+      renderFinalBupotSummary(calc);
       renderWifeNotice(calc);
       renderReceipt(calc);
       renderBrackets(calc);
@@ -5604,7 +5875,7 @@
       }
 
       const rows = [];
-      if (d.pph21Karyawan > 0) rows.push({ label: 'PPh Pasal 21 (Karyawan 1721-A1/A2)', src: 'Lampiran 1E / BPA1-BPA2', val: d.pph21Karyawan });
+      if (d.pph21Karyawan > 0) rows.push({ label: `PPh Pasal 21 Karyawan (${calc.bupotFormLabel})`, src: 'Lampiran 1E / Bukti Potong 1721', val: d.pph21Karyawan });
       if (d.pph21Lain > 0) rows.push({ label: 'PPh Pasal 21 (Bukan Pegawai / Lainnya)', src: 'Lampiran 1E / BP21', val: d.pph21Lain });
       if (d.pph22 > 0) rows.push({ label: 'PPh Pasal 22 (Pemungutan Pihak Lain)', src: 'Lampiran 1E / Induk 10a', val: d.pph22 });
       if (d.pph23 > 0) rows.push({ label: 'PPh Pasal 23 (Modal / Jasa / Sewa)', src: 'Lampiran 1E / Induk 10a', val: d.pph23 });
@@ -5694,6 +5965,42 @@
         ${rows.length > 1 ? `<div class="final-strip-meta">${detail}</div>` : ''}
         <div class="final-strip-meta">
           <span>PPh Final <strong>tidak digabung</strong> ke PKP Pasal 17 dan tidak dapat dikreditkan. Kode billing: <strong>KAP 411128 - KJS 420</strong>.</span>
+        </div>
+      `;
+    }
+
+    /**
+     * Ringkasan PPh 21 FINAL atas pesangon / manfaat pensiun / THT-TJHT (bukti potong 1721-VII).
+     * Final: penghasilan tidak digabung ke neto SPT dan PPh tidak dapat dikreditkan.
+     */
+    function renderFinalBupotSummary(calc) {
+      const el = document.getElementById('final-bupot-summary');
+      if (!el) return;
+
+      const rows = calc.bupotFinalRows || [];
+      if (rows.length === 0 || (calc.bupotFinalGross <= 0 && calc.bupotFinalTax <= 0)) {
+        el.className = 'hidden';
+        el.innerHTML = '';
+        return;
+      }
+
+      const detail = rows.map((r) => `
+        <div>${escapeHtml(r.raw.name || 'Pesangon')}${r.raw.owner === 'wife' ? ' (Istri)' : ''} · 1721-VII · Bruto ${formatRp(r.totalBruto)} · PPh 21 Final ${formatRp(r.pphFinal)}</div>
+      `).join('');
+
+      el.className = 'final-strip';
+      el.innerHTML = `
+        <div class="final-strip-head">
+          <span class="final-strip-title">PPh 21 Final — Pesangon / Manfaat Pensiun / THT-TJHT (1721-VII, Lampiran Penghasilan Final)</span>
+          <span class="final-strip-amount tabular">${formatRp(calc.bupotFinalTax)}</span>
+        </div>
+        <div class="final-strip-meta tabular">
+          <span>Total Bruto: <strong>${formatRp(calc.bupotFinalGross)}</strong></span>
+          <span>PPh 21 Final Dipotong Pemberi Kerja: <strong>${formatRp(calc.bupotFinalTax)}</strong></span>
+        </div>
+        ${rows.length > 1 ? `<div class="final-strip-meta">${detail}</div>` : ''}
+        <div class="final-strip-meta">
+          <span>Bersifat <strong>FINAL</strong>: tidak digabung ke PKP Pasal 17, <strong>tidak dapat dikreditkan</strong>, dan sudah dipotong pemberi kerja sehingga tidak menimbulkan kurang bayar.</span>
         </div>
       `;
     }
@@ -5986,14 +6293,25 @@
 
       if (calc.mode === 'KK_FINAL') {
         const wifeExtraCredit = calc.creditDetailW.netKredit;
+        const wifeFinalRows = (calc.bupotFinalRows || []).filter((r) => r.raw.owner === 'wife');
+        const wifePesangonFinal = calc.activeWife.length >= 1 && calc.activeWife.every((i) => i.isFinal);
+        const reasonText = wifePesangonFinal
+          ? `berasal dari bukti potong yang bersifat final, yaitu <strong>PPh 21 Final pesangon / manfaat pensiun / THT-TJHT (1721-VII)</strong> sesuai Pasal 4 ayat (2) UU PPh, sehingga tidak digabung ke PKP suami`
+          : `berasal dari 1 pemberi kerja dan tidak terkait usaha suami (Pasal 8 ayat 1 UU PPh), sehingga tidak digabung ke PKP suami`;
         box.className = 'soft-notice final-notice';
         box.innerHTML = `
           <div class="soft-notice-title">Penghasilan Istri Bersifat Final — Dilaporkan di Lampiran Penghasilan Final SPT Suami</div>
-          <div>Karena berasal dari 1 pemberi kerja dan tidak terkait usaha suami (Pasal 8 ayat 1 UU PPh), penghasilan istri tidak digabung ke PKP suami dan PTKP tetap <strong>${calc.ptkp.code}</strong>.${wifeExtraCredit > 0 ? ` Kredit pajak non-final mandiri pada tab Istri (${formatRp(wifeExtraCredit)}) tetap diperhitungkan dalam 1 SPT keluarga.` : ''}</div>
+          <div>Karena penghasilan istri ${reasonText}. PTKP tetap <strong>${calc.ptkp.code}</strong>.${wifeExtraCredit > 0 ? ` Kredit pajak non-final mandiri pada tab Istri (${formatRp(wifeExtraCredit)}) tetap diperhitungkan dalam 1 SPT keluarga.` : ''}</div>
           <div class="final-meta-row tabular">
             <span>Neto Istri: <strong>${formatRp(calc.netoW)}</strong></span>
-            <span>PPh 21 Final: <strong>${formatRp(calc.pphW)}</strong></span>
+            <span>PPh 21 Dipotong: <strong>${formatRp(calc.pphW)}</strong></span>
           </div>
+          ${wifeFinalRows.length > 0 ? `
+            <div class="final-meta-row tabular">
+              <span>Bruto Pesangon/Manfaat Pensiun (1721-VII): <strong>${formatRp(wifeFinalRows.reduce((s, r) => s + r.totalBruto, 0))}</strong></span>
+              <span>PPh 21 Final (tidak dikreditkan): <strong>${formatRp(wifeFinalRows.reduce((s, r) => s + r.pphFinal, 0))}</strong></span>
+            </div>
+          ` : ''}
         `;
       } else if (calc.mode === 'KK_MERGED') {
         let reason;
@@ -6030,7 +6348,7 @@
 
       const d = calc.creditDetailTotal;
       const creditSubRows = [];
-      if (d.pph21Karyawan > 0) creditSubRows.push(['PPh 21 Karyawan (1721-A1/A2)', `− ${formatRp(d.pph21Karyawan)}`]);
+      if (d.pph21Karyawan > 0) creditSubRows.push([`PPh 21 Karyawan (${calc.bupotFormLabel})`, `− ${formatRp(d.pph21Karyawan)}`]);
       if (d.pph21Lain > 0) creditSubRows.push(['PPh 21 Bukan Pegawai / Lainnya', `− ${formatRp(d.pph21Lain)}`]);
       if (d.pph22 > 0) creditSubRows.push(['PPh Pasal 22 (Pemungutan)', `− ${formatRp(d.pph22)}`]);
       if (d.pph23 > 0) creditSubRows.push(['PPh Pasal 23 (Pemotongan)', `− ${formatRp(d.pph23)}`]);
@@ -6048,7 +6366,7 @@
       const netoLn = calc.foreignNetoH + (includeWifeNeto ? calc.foreignNetoW : 0);
       const activeNetoSources = [netoPekerjaan, netoUsaha, netoLain, netoLn].filter((v) => v > 0).length;
       if (activeNetoSources > 1 || netoLn > 0 || netoLain > 0) {
-        if (netoPekerjaan > 0) netoSubRows.push(['Neto Pekerjaan (1721-A1/A2)', formatRp(netoPekerjaan)]);
+        if (netoPekerjaan > 0) netoSubRows.push([`Neto Pekerjaan (${calc.bupotFormLabel})`, formatRp(netoPekerjaan)]);
         if (netoUsaha > 0) netoSubRows.push(['Neto Usaha / Pekerjaan Bebas', formatRp(netoUsaha)]);
         if (netoLain > 0) netoSubRows.push(['Neto Dalam Negeri Lainnya', formatRp(netoLain)]);
         if (netoLn > 0) netoSubRows.push(['Neto Luar Negeri (Worldwide Income)', formatRp(netoLn)]);
@@ -6384,9 +6702,13 @@
         lines.push(`Setoran PPh Final: ${formatRp(c.finalPaidTotal)} | Status: ${c.finalDiff > 0 ? `KB ${formatRp(c.finalDiff)}` : (c.finalDiff < 0 ? `LB ${formatRp(Math.abs(c.finalDiff))}` : 'Nihil')}`);
       }
 
+      if (c.bupotFinalTax > 0 || c.bupotFinalGross > 0) {
+        lines.push(`PPh 21 Final Pesangon/Manfaat Pensiun (1721-VII, final, tidak dikreditkan): ${formatRp(c.bupotFinalTax)} | Bruto: ${formatRp(c.bupotFinalGross)}`);
+      }
+
       const d = c.creditDetailTotal;
       lines.push(`Total Kredit Pajak (Pasal 28 UU PPh): ${formatRp(c.kredit)}`);
-      if (d.pph21Karyawan > 0) lines.push(`  - PPh 21 Karyawan: ${formatRp(d.pph21Karyawan)}`);
+      if (d.pph21Karyawan > 0) lines.push(`  - PPh 21 Karyawan (${c.bupotFormLabel}): ${formatRp(d.pph21Karyawan)}`);
       if (d.pph21Lain > 0) lines.push(`  - PPh 21 Bukan Pegawai/Lainnya: ${formatRp(d.pph21Lain)}`);
       if (d.pph22 > 0) lines.push(`  - PPh Pasal 22: ${formatRp(d.pph22)}`);
       if (d.pph23 > 0) lines.push(`  - PPh Pasal 23: ${formatRp(d.pph23)}`);
@@ -6407,7 +6729,8 @@
           : (c.diff < 0 ? `Lebih Bayar (PPh Ps. 28A) ${formatRp(Math.abs(c.diff))}` : 'Nihil (Rp 0)');
         lines.push(`Status SPT: ${st}`);
         if (c.mode === 'KK_FINAL') {
-          lines.push(`Lampiran Final Istri: Neto ${formatRp(c.netoW)} | PPh 21 Final ${formatRp(c.pphW)}`);
+          lines.push(`Lampiran Final Istri: Neto ${formatRp(c.netoW)} | PPh 21 Dipotong ${formatRp(c.pphW)}`);
+          if (c.bupotFinalTax > 0) lines.push(`  PPh 21 Final Istri (1721-VII, tidak dikreditkan): ${formatRp(c.bupotFinalTax)}`);
         }
       }
 
