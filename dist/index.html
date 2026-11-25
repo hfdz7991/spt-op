@@ -2335,6 +2335,405 @@
     }
 
     /* =========================================================================
+       LAPORAN SIMULASI (CETAK / SIMPAN PDF) — dokumen A4 terpisah
+       Bukan cetak halaman aplikasi: laporan punya kop, bagian bernomor,
+       tabel kertas kerja, dan footer per halaman.
+       ========================================================================= */
+    .report-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      background: #E6EAF4;
+      overscroll-behavior: contain;
+    }
+
+    .report-toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(18, 26, 47, 0.08);
+    }
+
+    .report-toolbar-info {
+      min-width: 0;
+    }
+
+    .report-toolbar-info strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      letter-spacing: -0.01em;
+    }
+
+    .report-toolbar-info span {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .report-toolbar-actions {
+      display: flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .btn-report-print {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 600;
+    }
+
+    .btn-report-print:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .report-scroll {
+      flex: 1 1 auto;
+      overflow: auto;
+      padding: 18px 10px 40px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .report-root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* --- Halaman A4 --- */
+    .report-page {
+      width: 210mm;
+      height: 297mm;
+      padding: 14mm 15mm 12mm;
+      background: #FFFFFF;
+      color: #16203A;
+      font-family: var(--font-body);
+      font-size: 9.6pt;
+      line-height: 1.42;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 3px 14px rgba(18, 26, 47, 0.18);
+      box-sizing: border-box;
+      --rp-line: #D7DDEC;
+      --rp-line-strong: #B9C2D8;
+      --rp-head: #2447D6;
+      --rp-ink: #16203A;
+      --rp-muted: #5C6785;
+      --rp-soft: #F2F5FC;
+      --rp-rose: #B3261E;
+      --rp-emerald: #0F7A55;
+    }
+
+    .report-page .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rp-body {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .rp-h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 13px 0 5px;
+      font-family: var(--font-display);
+      font-size: 9.2pt;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--rp-head);
+    }
+
+    .rp-h2:first-child {
+      margin-top: 0;
+    }
+
+    .rp-h2::after {
+      content: '';
+      flex: 1 1 auto;
+      height: 1px;
+      background: var(--rp-line-strong);
+    }
+
+    .rp-h2 .rp-h2-cont {
+      font-size: 8pt;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--rp-muted);
+    }
+
+    .rp-h3 {
+      margin: 9px 0 4px;
+      font-family: var(--font-display);
+      font-size: 8.8pt;
+      font-weight: 700;
+      color: var(--rp-ink);
+    }
+
+    /* --- Kop laporan --- */
+    .rp-kop {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding-bottom: 9px;
+      border-bottom: 2px solid var(--rp-ink);
+    }
+
+    .rp-brand {
+      max-width: 58%;
+    }
+
+    .rp-brand-eyebrow {
+      display: block;
+      font-size: 7.4pt;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rp-head);
+    }
+
+    .rp-brand-title {
+      margin: 2px 0 2px;
+      font-family: var(--font-display);
+      font-size: 15pt;
+      line-height: 1.14;
+      letter-spacing: -0.02em;
+    }
+
+    .rp-brand-sub {
+      font-size: 8.6pt;
+      color: var(--rp-muted);
+    }
+
+    .rp-meta-table {
+      width: 42%;
+    }
+
+    .rp-meta-table td {
+      font-size: 8pt;
+    }
+
+    .rp-meta-table td:first-child {
+      color: var(--rp-muted);
+    }
+
+    .rp-meta-table td:last-child {
+      font-weight: 600;
+      text-align: right;
+    }
+
+    /* --- Banner status hasil --- */
+    .rp-status {
+      margin-top: 12px;
+      border: 1px solid var(--rp-line-strong);
+      border-left: 4px solid var(--rp-muted);
+      border-radius: 4px;
+      padding: 9px 12px;
+      background: var(--rp-soft);
+    }
+
+    .rp-status-kb {
+      border-left-color: var(--rp-rose);
+      background: #FDEDEB;
+    }
+
+    .rp-status-lb {
+      border-left-color: var(--rp-head);
+      background: #EBF0FF;
+    }
+
+    .rp-status-nihil {
+      border-left-color: var(--rp-emerald);
+      background: #E9F7F1;
+    }
+
+    .rp-status-label {
+      font-size: 7.6pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--rp-muted);
+    }
+
+    .rp-status-val {
+      font-family: var(--font-display);
+      font-size: 17pt;
+      font-weight: 800;
+      line-height: 1.16;
+      letter-spacing: -0.02em;
+    }
+
+    .rp-status-note {
+      font-size: 8.2pt;
+      color: #3E4964;
+    }
+
+    .rp-status-split {
+      display: flex;
+      gap: 10px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+
+    .rp-status-split > .rp-status {
+      flex: 1 1 0;
+      margin-top: 0;
+    }
+
+    /* --- Tabel --- */
+    .rp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2px;
+    }
+
+    .rp-table th,
+    .rp-table td {
+      border: 1px solid var(--rp-line);
+      padding: 3.5px 6px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .rp-table th {
+      background: var(--rp-soft);
+      font-size: 8.1pt;
+      font-weight: 700;
+      color: #26314F;
+    }
+
+    .rp-table td {
+      font-size: 8.4pt;
+    }
+
+    .rp-table th.rp-num,
+    .rp-table td.rp-num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .rp-table tr.rp-sub td {
+      font-size: 8pt;
+      color: #3E4964;
+    }
+
+    .rp-table tr.rp-sub td:first-child {
+      padding-left: 16px;
+    }
+
+    .rp-table tr.rp-total td {
+      background: #EDF1FB;
+      font-weight: 700;
+    }
+
+    .rp-table tr.rp-grand td {
+      background: var(--rp-ink);
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    .rp-table tr.rp-grand td.rp-num {
+      color: #FFFFFF;
+    }
+
+    .rp-table.rp-kv td:first-child {
+      width: 46%;
+      color: var(--rp-muted);
+    }
+
+    .rp-table.rp-kv td:last-child {
+      width: 54%;
+      font-weight: 600;
+    }
+
+    .rp-note {
+      margin-top: 4px;
+      font-size: 8pt;
+      color: var(--rp-muted);
+    }
+
+    .rp-note-list {
+      margin: 4px 0 0;
+      padding-left: 15px;
+      font-size: 8.2pt;
+      color: #26314F;
+    }
+
+    .rp-note-list li {
+      margin-bottom: 3px;
+    }
+
+    /* --- Footer halaman --- */
+    .rp-pagefoot {
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 5px;
+      border-top: 1px solid var(--rp-line);
+      font-size: 7.2pt;
+      color: var(--rp-muted);
+    }
+
+    /* --- Alat ukur tak terlihat untuk paginasi --- */
+    .rp-probe {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      width: 180mm;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .rp-probe > * {
+      display: flow-root;
+    }
+
+    .rp-marker {
+      display: block;
+      height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Zoom pratinjau hanya untuk layar: pada mode cetak, lebar halaman (±186mm setara 703px)
+       juga memenuhi max-width di bawah, sehingga tanpa kata kunci `screen` seluruh dokumen
+       PDF ikut mengecil ke 44%. */
+    @media screen and (max-width: 900px) {
+      .report-scroll {
+        padding: 12px 6px 32px;
+      }
+
+      .report-page {
+        zoom: 0.44;
+      }
+
+      .report-toolbar {
+        padding: 8px 10px;
+      }
+
+      .report-toolbar-info span {
+        display: none;
+      }
+    }
+
+    /* =========================================================================
        PRINT / PDF STYLES
        ========================================================================= */
     @media print {
@@ -2388,6 +2787,64 @@
         break-inside: avoid;
         page-break-inside: avoid;
         margin-bottom: 12px;
+      }
+
+      /* --- Mode laporan: hanya dokumen laporan yang dicetak --- */
+      body.report-open {
+        padding: 0 !important;
+        background: #FFFFFF !important;
+      }
+
+      body.report-open > *:not(#report-overlay) {
+        display: none !important;
+      }
+
+      #report-overlay {
+        position: static !important;
+        inset: auto !important;
+        display: block !important;
+        height: auto !important;
+        background: #FFFFFF !important;
+      }
+
+      #report-overlay .report-toolbar {
+        display: none !important;
+      }
+
+      .report-scroll {
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+
+      .report-root {
+        display: block !important;
+        gap: 0 !important;
+      }
+
+      .report-page {
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        break-after: page;
+        page-break-after: always;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .report-page:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
+
+      .rp-h2,
+      .rp-note-list,
+      .rp-status,
+      .rp-kop {
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
     }
   </style>
@@ -2652,13 +3109,13 @@
                   </svg>
                   <span>Salin Ringkasan</span>
                 </button>
-                <button type="button" class="btn btn-sm" onclick="window.print()">
+                <button type="button" class="btn btn-sm" onclick="openReport()">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polyline points="6 9 6 2 18 2 18 9" />
                     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                     <rect x="6" y="14" width="12" height="8" />
                   </svg>
-                  <span>Cetak / PDF</span>
+                  <span>Cetak Laporan PDF</span>
                 </button>
               </div>
             </div>
@@ -2791,6 +3248,24 @@
     </p>
     <span class="page-foot-meta">Simulasi SPT Tahunan PPh Orang Pribadi</span>
   </footer>
+
+  <!-- ==================== LAPORAN SIMULASI (CETAK / SIMPAN PDF) ==================== -->
+  <div id="report-overlay" class="report-overlay hidden" role="dialog" aria-modal="true" aria-label="Pratinjau Laporan Simulasi SPT Tahunan">
+    <div class="report-toolbar no-print">
+      <div class="report-toolbar-info">
+        <strong>Laporan Simulasi SPT Tahunan</strong>
+        <span id="report-toolbar-meta">Pratinjau dokumen A4. Pilih Cetak / Simpan PDF lalu pilih tujuan Simpan sebagai PDF.</span>
+      </div>
+      <div class="report-toolbar-actions">
+        <button type="button" id="report-print-btn" class="btn btn-sm btn-report-print" onclick="printReport()">Cetak / Simpan PDF</button>
+        <button type="button" class="btn btn-sm" onclick="closeReport()">Tutup</button>
+      </div>
+    </div>
+    <div class="report-scroll">
+      <div id="report-root" class="report-root"></div>
+    </div>
+    <div id="report-probe" class="rp-probe" aria-hidden="true"></div>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast" role="status" aria-live="polite">Ringkasan tersalin ke clipboard</div>
@@ -6328,25 +6803,20 @@
       const card = document.getElementById('pph25-card');
       const body = document.getElementById('pph25-body');
 
-      const hasNonFinalBiz = calc.bizRows.some((r) => !r.isFinal && (r.neto > 0 || r.raw.scheme === 'pembukuan' || r.raw.scheme === 'nppn'));
-      const hasSelfPph25 = calc.creditDetailTotal.pph25Angsuran > 0 || calc.creditDetailTotal.stpPph25 > 0;
-      const hasOtherRegular = (calc.otherNetoH + calc.otherNetoW + calc.foreignNetoH + calc.foreignNetoW) > 0;
+      const pph25 = computePph25Data(calc);
 
-      if (!hasNonFinalBiz && !hasSelfPph25 && !hasOtherRegular) {
+      if (!pph25) {
         card.classList.add('hidden');
         return;
       }
 
-      const opptRows = calc.bizRows.filter((r) => r.raw.oppt && !r.isFinal && r.gross > 0);
-      const opptMonthly = opptRows.reduce((sum, r) => sum + Math.round(r.gross * UMKM.OPPT_RATE / 12), 0);
+      const opptMonthly = pph25.opptMonthly;
 
       card.classList.remove('hidden');
 
       if (calc.mode === 'PH_MT') {
-        const baseH = Math.max(0, calc.taxH - calc.creditDetailH.kreditPihakLain);
-        const baseW = Math.max(0, calc.taxW - calc.creditDetailW.kreditPihakLain);
-        const monthlyH = Math.round(baseH / 12);
-        const monthlyW = Math.round(baseW / 12);
+        const monthlyH = pph25.monthlyH;
+        const monthlyW = pph25.monthlyW;
 
         body.innerHTML = `
           <div class="pph25-box">
@@ -6377,9 +6847,8 @@
         return;
       }
 
-      const kreditPihakLain = calc.kreditPihakLainTotal;
-      const dasar = Math.max(0, calc.pphTerutang - kreditPihakLain);
-      const monthly = Math.round(dasar / 12);
+      const kreditPihakLain = pph25.kreditPihakLain;
+      const monthly = pph25.monthly;
 
       body.innerHTML = `
         <div class="pph25-box">
@@ -6410,66 +6879,14 @@
       const card = document.getElementById('scheme-comparison-card');
       const body = document.getElementById('scheme-comparison-body');
 
-      const status = state.status;
-      const usahaRows = calc.bizRows.filter((r) => r.raw.kind === 'usaha' && r.gross > 0);
-      const grossTotal = calc.bizRows.reduce((s, r) => s + r.gross, 0);
-      const eligible = usahaRows.length > 0 && grossTotal < UMKM.GROSS_LIMIT;
+      const comparison = computeSchemeComparison(calc, compareNormaOverride);
 
-      if (!eligible) {
+      if (!comparison) {
         card.classList.add('hidden');
         return;
       }
 
-      // Simulasi alternatif: seluruh usaha memakai skema tertentu (+ override % norma bila diisi)
-      const snapshot = state.businesses.map((b) => ({
-        id: b.id, kind: b.kind, scheme: b.scheme, owner: b.owner,
-        useCustomNorma: b.useCustomNorma, normaCustom: b.normaCustom, finalPaid: b.finalPaid,
-      }));
-
-      const simulateWithScheme = (scheme) => {
-        state.businesses.forEach((b) => {
-          const s = snapshot.find((x) => x.id === b.id);
-          if (!s || s.kind !== 'usaha' || s.scheme === 'pembukuan') return;
-          b.scheme = scheme;
-          b.finalPaid = 0;
-          if (compareNormaOverride !== null) {
-            b.useCustomNorma = true;
-            b.normaCustom = compareNormaOverride;
-          }
-        });
-        const res = evaluateScenario(status);
-        snapshot.forEach((s) => {
-          const b = state.businesses.find((x) => x.id === s.id);
-          if (!b) return;
-          b.scheme = s.scheme;
-          b.useCustomNorma = s.useCustomNorma;
-          b.normaCustom = s.normaCustom;
-          b.finalPaid = s.finalPaid;
-        });
-        return res;
-      };
-
-      const simFinal = simulateWithScheme('final');
-      const simNppn = simulateWithScheme('nppn');
-
-      const taxFinal = simFinal.familyTotalTax;
-      const taxNppn = simNppn.familyTotalTax;
-      const better = taxFinal < taxNppn ? 'final' : (taxNppn < taxFinal ? 'nppn' : 'sama');
-      const diff = Math.abs(taxFinal - taxNppn);
-
-      const hasPembukuan = snapshot.some((s) => s.kind === 'usaha' && s.scheme === 'pembukuan');
-      const hasNonSembilan = state.businesses.some((b) => b.kind === 'usaha' && b.scheme === 'nppn' && !b.useCustomNorma && getBusinessNormaPct(b) === 0);
-
-      let note = '';
-      if (hasPembukuan) {
-        note = 'Seperti biasa: kartu usaha ber-schema Pembukuan tidak ikut dibandingkan karena netonya berbasis biaya riil, bukan norma.';
-      } else if (better === 'final') {
-        note = `<strong>Skema Final UMKM 0,5% lebih hemat ${formatRp(diff)}</strong> dibanding NPPN pada komposisi penghasilan saat ini.`;
-      } else if (better === 'nppn') {
-        note = `<strong>Skema NPPN lebih hemat ${formatRp(diff)}</strong> dibanding Final 0,5%. Umumnya terjadi saat persentase norma rendah atau ada kredit pajak non-final besar.`;
-      } else {
-        note = `<strong>Beban pajak kedua skema sama (${formatRp(taxFinal)})</strong> pada komposisi saat ini.`;
-      }
+      const { simFinal, simNppn, taxFinal, taxNppn, note, hasNonSembilan } = comparison;
 
       card.classList.remove('hidden');
       body.innerHTML = `
@@ -6920,20 +7337,14 @@
       const card = document.getElementById('comparison-card');
       const body = document.getElementById('comparison-body');
 
-      // Muncul otomatis HANYA jika status Kawin dan Istri memiliki penghasilan/kredit aktif
-      const wifeHasBusiness = state.businesses.some((b) => b.owner === 'wife' && businessIsActive(b));
-      const wifeHasCredits = countStandaloneCreditsForOwner('wife') > 0;
-      const shouldShow = isMarried() && (calc.activeWife.length >= 1 || wifeHasBusiness || wifeHasCredits);
-      if (!shouldShow) {
+      const comparison = computeStatusComparison(calc);
+
+      if (!comparison) {
         card.classList.add('hidden');
         return;
       }
 
-      card.classList.remove('hidden');
-
-      const simKK = evaluateScenario('KK');
-      const simPH = evaluateScenario('PH');
-      const diffTax = simPH.familyTotalTax - simKK.familyTotalTax;
+      const { simKK, simPH, note } = comparison;
 
       const fmtDiff = (d) => {
         if (d > 0) return `KB ${formatRp(d)}`;
@@ -6941,14 +7352,7 @@
         return 'Nihil (Rp 0)';
       };
 
-      let note = '';
-      if (diffTax > 0) {
-        note = `Opsi <strong>KK lebih hemat ${formatRp(diffTax)}</strong> dibanding PH/MT karena penghasilan istri tidak mendorong lapisan tarif progresif lebih tinggi.`;
-      } else if (diffTax < 0) {
-        note = `Total pajak keluarga pada <strong>PH/MT lebih rendah ${formatRp(Math.abs(diffTax))}</strong> dibanding KK. Pada WP dengan usaha PPh Final UMKM, kuota omzet bebas PPh Rp 500 juta dihitung <strong>terpisah</strong> untuk suami dan istri pada status PH/MT, sedangkan pada KK hanya 1x.`;
-      } else {
-        note = `<strong>Total beban pajak keluarga sama persis (${formatRp(simKK.familyTotalTax)})</strong> pada kombinasi penghasilan saat ini. Status KK lebih ringkas karena cukup menyampaikan 1 SPT.`;
-      }
+      card.classList.remove('hidden');
 
       body.innerHTML = `
         <table class="clean-table tabular">
@@ -7066,6 +7470,943 @@
 
       document.body.removeChild(ta);
     }
+
+    // =========================================================================
+    // 8b. HELPER MURNI BERSAMA (dipakai panel aplikasi DAN laporan PDF)
+    // Dipisah agar angka di laporan tidak pernah berbeda dari angka di layar.
+    // =========================================================================
+
+    /** Data angsuran PPh Pasal 25 tahun berikutnya, atau null bila tidak relevan. */
+    function computePph25Data(calc) {
+      const hasNonFinalBiz = calc.bizRows.some((r) => !r.isFinal && (r.neto > 0 || r.raw.scheme === 'pembukuan' || r.raw.scheme === 'nppn'));
+      const hasSelfPph25 = calc.creditDetailTotal.pph25Angsuran > 0 || calc.creditDetailTotal.stpPph25 > 0;
+      const hasOtherRegular = (calc.otherNetoH + calc.otherNetoW + calc.foreignNetoH + calc.foreignNetoW) > 0;
+
+      if (!hasNonFinalBiz && !hasSelfPph25 && !hasOtherRegular) return null;
+
+      const opptRows = calc.bizRows.filter((r) => r.raw.oppt && !r.isFinal && r.gross > 0);
+      const opptMonthly = opptRows.reduce((sum, r) => sum + Math.round(r.gross * UMKM.OPPT_RATE / 12), 0);
+      const data = { opptMonthly, opptCount: opptRows.length };
+
+      if (calc.mode === 'PH_MT') {
+        data.mode = 'PH_MT';
+        data.taxH = calc.taxH;
+        data.taxW = calc.taxW;
+        data.kreditH = calc.creditDetailH.kreditPihakLain;
+        data.kreditW = calc.creditDetailW.kreditPihakLain;
+        data.monthlyH = Math.round(Math.max(0, data.taxH - data.kreditH) / 12);
+        data.monthlyW = Math.round(Math.max(0, data.taxW - data.kreditW) / 12);
+        return data;
+      }
+
+      data.mode = 'SINGLE';
+      data.kreditPihakLain = calc.kreditPihakLainTotal;
+      data.monthly = Math.round(Math.max(0, calc.pphTerutang - data.kreditPihakLain) / 12);
+      return data;
+    }
+
+    /**
+     * Perbandingan skema usaha: PPh Final UMKM 0,5% vs Pencatatan NPPN.
+     * @param normaPct override % norma (null = pakai % norma tiap kartu).
+     * @returns {object|null}
+     */
+    function computeSchemeComparison(calc, normaPct) {
+      const usahaRows = calc.bizRows.filter((r) => r.raw.kind === 'usaha' && r.gross > 0);
+      const grossTotal = calc.bizRows.reduce((s, r) => s + r.gross, 0);
+      if (!(usahaRows.length > 0 && grossTotal < UMKM.GROSS_LIMIT)) return null;
+
+      const status = state.status;
+      const override = (normaPct === null || normaPct === undefined || normaPct === '') ? null : Number(normaPct);
+      const useOverride = override !== null && Number.isFinite(override);
+
+      // Simulasi alternatif: seluruh kartu usaha memakai satu skema tertentu.
+      const snapshot = state.businesses.map((b) => ({
+        id: b.id, kind: b.kind, scheme: b.scheme, owner: b.owner,
+        useCustomNorma: b.useCustomNorma, normaCustom: b.normaCustom, finalPaid: b.finalPaid,
+      }));
+
+      const simulateWithScheme = (scheme) => {
+        state.businesses.forEach((b) => {
+          const s = snapshot.find((x) => x.id === b.id);
+          if (!s || s.kind !== 'usaha' || s.scheme === 'pembukuan') return;
+          b.scheme = scheme;
+          b.finalPaid = 0;
+          if (useOverride) {
+            b.useCustomNorma = true;
+            b.normaCustom = override;
+          }
+        });
+        const res = evaluateScenario(status);
+        snapshot.forEach((s) => {
+          const b = state.businesses.find((x) => x.id === s.id);
+          if (!b) return;
+          b.scheme = s.scheme;
+          b.useCustomNorma = s.useCustomNorma;
+          b.normaCustom = s.normaCustom;
+          b.finalPaid = s.finalPaid;
+        });
+        return res;
+      };
+
+      const simFinal = simulateWithScheme('final');
+      const simNppn = simulateWithScheme('nppn');
+
+      const taxFinal = simFinal.familyTotalTax;
+      const taxNppn = simNppn.familyTotalTax;
+      const better = taxFinal < taxNppn ? 'final' : (taxNppn < taxFinal ? 'nppn' : 'sama');
+      const diff = Math.abs(taxFinal - taxNppn);
+
+      const hasPembukuan = snapshot.some((s) => s.kind === 'usaha' && s.scheme === 'pembukuan');
+      const hasNonSembilan = state.businesses.some((b) => b.kind === 'usaha' && b.scheme === 'nppn' && !b.useCustomNorma && getBusinessNormaPct(b) === 0);
+
+      let note = '';
+      if (hasPembukuan) {
+        note = 'Seperti biasa: kartu usaha berskema Pembukuan tidak ikut dibandingkan karena netonya berbasis biaya riil, bukan norma.';
+      } else if (better === 'final') {
+        note = `<strong>Skema Final UMKM 0,5% lebih hemat ${formatRp(diff)}</strong> dibanding NPPN pada komposisi penghasilan saat ini.`;
+      } else if (better === 'nppn') {
+        note = `<strong>Skema NPPN lebih hemat ${formatRp(diff)}</strong> dibanding Final 0,5%. Umumnya terjadi saat persentase norma rendah atau ada kredit pajak non-final besar.`;
+      } else {
+        note = `<strong>Beban pajak kedua skema sama (${formatRp(taxFinal)})</strong> pada komposisi saat ini.`;
+      }
+
+      return { simFinal, simNppn, taxFinal, taxNppn, better, diff, hasPembukuan, hasNonSembilan, note, useOverride };
+    }
+
+    /** Perbandingan status KK (gabung) vs PH/MT (terpisah), atau null bila tidak relevan. */
+    function computeStatusComparison(calc) {
+      const wifeHasBusiness = state.businesses.some((b) => b.owner === 'wife' && businessIsActive(b));
+      const wifeHasCredits = countStandaloneCreditsForOwner('wife') > 0;
+      if (!(isMarried() && (calc.activeWife.length >= 1 || wifeHasBusiness || wifeHasCredits))) return null;
+
+      const simKK = evaluateScenario('KK');
+      const simPH = evaluateScenario('PH');
+      const diffTax = simPH.familyTotalTax - simKK.familyTotalTax;
+
+      let note = '';
+      if (diffTax > 0) {
+        note = `Opsi <strong>KK lebih hemat ${formatRp(diffTax)}</strong> dibanding PH/MT karena penghasilan istri tidak mendorong lapisan tarif progresif lebih tinggi.`;
+      } else if (diffTax < 0) {
+        note = `Total pajak keluarga pada <strong>PH/MT lebih rendah ${formatRp(Math.abs(diffTax))}</strong> dibanding KK. Pada WP dengan usaha PPh Final UMKM, kuota omzet bebas PPh Rp 500 juta dihitung <strong>terpisah</strong> untuk suami dan istri pada status PH/MT, sedangkan pada KK hanya 1x.`;
+      } else {
+        note = `<strong>Total beban pajak keluarga sama persis (${formatRp(simKK.familyTotalTax)})</strong> pada kombinasi penghasilan saat ini. Status KK lebih ringkas karena cukup menyampaikan 1 SPT.`;
+      }
+
+      return { simKK, simPH, diffTax, note };
+    }
+
+    // =========================================================================
+    // 8c. LAPORAN SIMULASI (CETAK / SIMPAN PDF)
+    // Dokumen A4 terpisah dari halaman aplikasi: kop, bagian bernomor, tabel
+    // kertas kerja, dan footer per halaman. Paginasi dihitung dari tinggi blok
+    // nyata (diukur di #report-probe), sehingga tabel panjang terpotong rapi
+    // dengan header berulang dan tidak ada isi yang terpotong.
+    // =========================================================================
+    const REPORT_STATUS_LABEL = {
+      TK: 'TK (Tidak Kawin)',
+      KK: 'KK (Kawin, NPWP Gabung)',
+      PH: 'PH (Kawin, Pisah Harta)',
+      MT: 'MT (Kawin, NPWP Istri Sendiri)',
+      HB: 'HB (Hidup Berpisah)',
+    };
+
+    const REPORT_SCHEME_LABEL = {
+      final: 'PPh Final UMKM 0,5%',
+      nppn: 'Pencatatan NPPN',
+      pembukuan: 'Pembukuan',
+    };
+
+    const REPORT_KIND_LABEL = {
+      usaha: 'Usaha',
+      bebas: 'Pekerjaan Bebas',
+    };
+
+    const REPORT_OWNER_LABEL = {
+      husband: 'Suami / WP',
+      wife: 'Istri',
+    };
+
+    const REPORT_MODE_LABEL = {
+      SINGLE: 'Satu SPT pribadi, seluruh penghasilan digabung',
+      KK_FINAL: 'Satu SPT keluarga, penghasilan istri bersifat final (1 pemberi kerja) sehingga tidak digabung ke PKP',
+      KK_NONE: 'Satu SPT keluarga, belum ada penghasilan istri yang dilaporkan',
+      KK_MERGED: 'Satu SPT keluarga, penghasilan istri digabung karena sifat final gugur',
+      PH_MT: 'Dua SPT terpisah, PPh Terutang dibagi proporsional sesuai neto (Pasal 8 ayat 3 UU PPh)',
+    };
+
+    function reportEscape(value) {
+      return escapeHtml(value === null || value === undefined ? '' : value);
+    }
+
+    function reportOwnerLabel(owner) {
+      return REPORT_OWNER_LABEL[owner] || 'WP';
+    }
+
+    function reportForeignTypeLabel(key) {
+      const found = FOREIGN_INCOME_TYPES.find((t) => t.key === key);
+      return found ? found.label : 'Penghasilan LN Lainnya';
+    }
+
+    function reportDateInfo() {
+      const now = new Date();
+      let dateStr = '';
+      let timeStr = '';
+      let year = now.getFullYear();
+      try {
+        dateStr = new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' }).format(now);
+        timeStr = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' }).format(now).replace(':', '.');
+        year = Number(new Intl.DateTimeFormat('en-US', { year: 'numeric', timeZone: 'Asia/Jakarta' }).format(now)) || year;
+      } catch (_) {
+        const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        dateStr = `${now.getDate()} ${bulan[now.getMonth()]} ${now.getFullYear()}`;
+      }
+      return { dateStr, timeStr, year };
+    }
+
+    function reportDocNumber(calc, dateInfo) {
+      const raw = [
+        state.status, state.dependents, state.bupots.length, state.businesses.length,
+        state.businesses.map((b) => b.scheme).join('|'), state.taxCredits.length,
+        state.foreignCredits.length, calc.netoForTax, calc.pkp, calc.pphTerutang, calc.kredit,
+      ].join('#');
+      let hash = 7;
+      for (let i = 0; i < raw.length; i += 1) {
+        hash = (hash * 33 + raw.charCodeAt(i)) % 2176782336;
+      }
+      const d = new Date();
+      const stamp = `${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+      return `SIM/SPT-OP/${dateInfo.year}/${stamp}-${hash.toString(36).toUpperCase().padStart(6, '0')}`;
+    }
+
+    function reportStatusClass(meta) {
+      if (meta.cls === 'status-kb') return 'kb';
+      if (meta.cls === 'status-lb') return 'lb';
+      return 'nihil';
+    }
+
+    function reportSchemeCell(row) {
+      const b = row.raw;
+      const kind = REPORT_KIND_LABEL[b.kind] || 'Usaha';
+      if (b.scheme === 'nppn') {
+        const preset = getNppnPreset(b.klu);
+        const zone = NPPN_ZONES[getZoneIndex(b.zone)] || NPPN_ZONES[0];
+        const klu = b.useCustomNorma ? 'KLU manual' : `KLU ${preset.klu}`;
+        return `${kind} · NPPN ${getBusinessNormaPct(b)}% (${reportEscape(klu)}, ${reportEscape(zone.label)})`;
+      }
+      if (b.scheme === 'pembukuan') {
+        return `${kind} · Pembukuan (${b.costMode === 'neto' ? 'neto fiskal' : 'biaya riil'})`;
+      }
+      return `${kind} · ${REPORT_SCHEME_LABEL[b.scheme] || b.scheme}`;
+    }
+
+    /** Susun daftar blok laporan (urutan mengikuti alur SPT Tahunan). */
+    function buildReportBlocks(calc) {
+      const dateInfo = reportDateInfo();
+      const meta = {
+        dateInfo,
+        year: dateInfo.year,
+        docNo: reportDocNumber(calc, dateInfo),
+        sptCount: calc.mode === 'PH_MT' ? '2 SPT (Suami & Istri)' : '1 SPT',
+      };
+
+      const blocks = [];
+      const statusMeta = getStatusMeta(calc.diff);
+      const bupotAll = [...calc.activeHusband, ...calc.activeWife];
+      const bupotNonFinal = bupotAll.filter((b) => !b.isFinal);
+      const bupotFinalRows = calc.bupotFinalRows || [];
+      const bizNonFinal = calc.bizRows.filter((r) => !r.isFinal);
+      const bizFinal = calc.bizRows.filter((r) => r.isFinal);
+      const schemeLabels = [...new Set(calc.bizRows.map((r) => REPORT_SCHEME_LABEL[r.raw.scheme] || r.raw.scheme))];
+      const sumOf = (arr, key) => arr.reduce((s, x) => s + (Number(x[key]) || 0), 0);
+
+      // --- Kop laporan ---
+      blocks.push({
+        kind: 'html',
+        html: `
+          <div class="rp-kop">
+            <div class="rp-brand">
+              <span class="rp-brand-eyebrow">Simulasi Perpajakan</span>
+              <h1 class="rp-brand-title">Laporan Simulasi SPT Tahunan</h1>
+              <span class="rp-brand-sub">Pajak Penghasilan Orang Pribadi (PPh OP) · Tahun Pajak ${meta.year}</span>
+            </div>
+            <table class="rp-table rp-meta-table">
+              <tbody>
+                <tr><td>Nomor dokumen</td><td>${reportEscape(meta.docNo)}</td></tr>
+                <tr><td>Tanggal simulasi</td><td>${reportEscape(dateInfo.dateStr)}${dateInfo.timeStr ? ` ${reportEscape(dateInfo.timeStr)} WIB` : ''}</td></tr>
+                <tr><td>Status perpajakan</td><td>${reportEscape(calc.status)} · PTKP ${reportEscape(calc.ptkp.code)}</td></tr>
+                <tr><td>Jumlah SPT disimulasikan</td><td>${reportEscape(meta.sptCount)}</td></tr>
+              </tbody>
+            </table>
+          </div>
+        `,
+      });
+
+      // --- Banner hasil ---
+      if (calc.mode === 'PH_MT') {
+        const mH = getStatusMeta(calc.diffH);
+        const mW = getStatusMeta(calc.diffW);
+        const pctH = `${(calc.ratioH * 100).toFixed(1).replace('.', ',')}%`;
+        const pctW = `${(calc.ratioW * 100).toFixed(1).replace('.', ',')}%`;
+        const anyKB = calc.diffH > 0 || calc.diffW > 0;
+        blocks.push({
+          kind: 'html',
+          html: `
+            <div class="rp-status-split">
+              <div class="rp-status rp-status-${reportStatusClass(mH)}">
+                <div class="rp-status-label">SPT Suami (${pctH} dari neto gabungan)</div>
+                <div class="rp-status-val tabular">${reportEscape(mH.short)}: ${reportEscape(mH.display)}</div>
+              </div>
+              <div class="rp-status rp-status-${reportStatusClass(mW)}">
+                <div class="rp-status-label">SPT Istri (${pctW} dari neto gabungan)</div>
+                <div class="rp-status-val tabular">${reportEscape(mW.short)}: ${reportEscape(mW.display)}</div>
+              </div>
+            </div>
+            ${anyKB ? '<div class="rp-note">Kode billing PPh Pasal 29: KAP 411125, KJS 200, disetor masing-masing sebelum menyampaikan SPT.</div>' : ''}
+          `,
+        });
+      } else {
+        const subText = calc.diff > 0
+          ? 'Kekurangan pajak yang wajib dilunasi sebelum penyampaian SPT Tahunan.'
+          : (calc.diff < 0
+            ? 'Total kredit pajak (pemotongan/pemungutan pihak lain dan angsuran PPh 25) melebihi PPh Terutang setahun, dapat direstitusi atau dikompensasikan.'
+            : 'Total kredit pajak sudah sesuai dengan PPh Terutang setahun.');
+        blocks.push({
+          kind: 'html',
+          html: `
+            <div class="rp-status rp-status-${reportStatusClass(statusMeta)}">
+              <div class="rp-status-label">Hasil simulasi: ${reportEscape(statusMeta.label)}</div>
+              <div class="rp-status-val tabular">${reportEscape(statusMeta.display)}</div>
+              <div class="rp-status-note">${subText}${calc.mode === 'KK_FINAL' ? ' Penghasilan istri dilaporkan pada Lampiran Penghasilan Final SPT suami.' : ''}</div>
+            </div>
+            ${calc.diff > 0 ? '<div class="rp-note">Kode billing setoran: KAP 411125, KJS 200 (PPh Pasal 29 Orang Pribadi).</div>' : ''}
+          `,
+        });
+      }
+
+      // --- A. Identitas & status ---
+      const identityRows = [
+        ['Status perpajakan', REPORT_STATUS_LABEL[calc.status] || calc.status],
+        ['Jumlah tanggungan', `${state.dependents} orang`],
+        ['PTKP yang digunakan', `${calc.ptkp.code} · ${formatRp(calc.ptkp.amount)}`],
+        ['Pengurang zakat / sumbangan keagamaan wajib', calc.zakatForTax > 0 ? formatRp(calc.zakatForTax) : 'Tidak ada'],
+        ['Mode perhitungan', REPORT_MODE_LABEL[calc.mode] || calc.mode],
+        ['Skema penghasilan usaha / pekerjaan bebas', schemeLabels.length ? schemeLabels.join(', ') : 'Tidak ada'],
+        ['Bukti potong aktif', `${bupotNonFinal.length} non-final, ${bupotFinalRows.length} final`],
+        ['Kredit pajak mandiri & luar negeri', `${calc.activeCreditsH.length + calc.activeCreditsW.length} kartu Lampiran 1E, ${calc.activeForeignH.length + calc.activeForeignW.length} sumber Lampiran 2C`],
+      ];
+      blocks.push({
+        kind: 'table',
+        title: 'A. Identitas & Status Perpajakan',
+        cls: 'rp-kv',
+        head: null,
+        num: [],
+        rows: identityRows.map(([k, v]) => ({ cells: [reportEscape(k), reportEscape(v)] })),
+      });
+
+      // --- B. Ringkasan hasil ---
+      const ringkasRows = [
+        { cells: ['Total penghasilan neto', `<strong>${formatRp(calc.netoForTax)}</strong>`] },
+      ];
+      if (calc.zakatForTax > 0) {
+        ringkasRows.push({ cells: ['Pengurang zakat / sumbangan keagamaan wajib', `( ${formatRp(calc.zakatForTax)} )`] });
+      }
+      ringkasRows.push({ cells: [`PTKP (${calc.ptkp.code})`, `( ${formatRp(calc.ptkp.amount)} )`] });
+      ringkasRows.push({ cells: ['Penghasilan Kena Pajak (PKP)', `<strong>${formatRp(calc.pkp)}</strong>`], cls: 'rp-total' });
+      ringkasRows.push({ cells: ['PPh Terutang setahun (Pasal 17 UU HPP)', formatRp(calc.pphTerutang)] });
+      ringkasRows.push({ cells: ['Total kredit pajak (Pasal 28 UU PPh)', calc.kredit >= 0 ? `( ${formatRp(calc.kredit)} )` : `+ ${formatRp(Math.abs(calc.kredit))}`] });
+      if (calc.mode === 'PH_MT') {
+        ringkasRows.push({ cells: ['PPh Terutang dibagi: Suami / Istri', `${formatRp(calc.taxH)} / ${formatRp(calc.taxW)}`] });
+      }
+      const finalLabel = calc.diff > 0
+        ? (calc.mode === 'PH_MT' ? 'Total kurang bayar gabungan (2 SPT)' : 'Kurang bayar (PPh Pasal 29)')
+        : (calc.diff < 0
+          ? (calc.mode === 'PH_MT' ? 'Total lebih bayar gabungan (2 SPT)' : 'Lebih bayar (PPh Pasal 28A)')
+          : 'Status akhir SPT');
+      ringkasRows.push({ cells: [finalLabel, `<strong>${formatRp(Math.abs(calc.diff))}</strong>`], cls: 'rp-grand' });
+      blocks.push({
+        kind: 'table',
+        title: 'B. Ringkasan Hasil Simulasi',
+        head: ['Uraian', 'Nominal'],
+        num: [1],
+        rows: ringkasRows,
+        note: calc.pkpRaw !== calc.pkp
+          ? `<div class="rp-note">PKP dibulatkan ke bawah ribuan penuh dari ${formatRp(calc.pkpRaw)} sesuai Pasal 17 ayat 4 UU PPh.</div>`
+          : '',
+      });
+
+      // --- C. Rincian sumber penghasilan ---
+      blocks.push({ kind: 'html', html: '<div class="rp-h2">C. Rincian Sumber Penghasilan</div><div class="rp-note">Seluruh angka berasal dari kartu input pada aplikasi. Penghasilan final tidak digabung ke PKP dan pajaknya tidak dikreditkan.</div>' });
+
+      if (bupotNonFinal.length > 0) {
+        const rowsC1 = bupotNonFinal.map((b) => ({
+          cells: [
+            reportEscape(b.short),
+            reportEscape(b.raw.name || '(tanpa nama)'),
+            reportOwnerLabel(b.raw.owner),
+            b.totalBruto > 0 ? formatRp(b.totalBruto) : 'Tidak diisi',
+            formatRp(b.neto),
+            formatRp(b.pph),
+          ],
+        }));
+        rowsC1.push({
+          cells: ['Total', '', '', formatRp(sumOf(bupotNonFinal, 'totalBruto')), formatRp(sumOf(bupotNonFinal, 'neto')), formatRp(sumOf(bupotNonFinal, 'pph'))],
+          cls: 'rp-total',
+        });
+        blocks.push({
+          kind: 'table',
+          title: 'C.1 Bukti Potong Non-Final yang Digabung',
+          head: ['Jenis', 'Nama / Instansi', 'Pemilik', 'Bruto', 'Neto / Dasar', 'PPh Dipotong'],
+          num: [3, 4, 5],
+          rows: rowsC1,
+          note: '<div class="rp-note">Bukti potong non-final digabung ke penghasilan neto dan PPh yang dipotongnya dapat dikreditkan (Pasal 28 UU PPh). Mode bruto memakai Biaya Jabatan 5% (maks. Rp 500.000 per bulan) untuk pegawai tetap, dan DPP 50% dari bruto untuk bukan pegawai. Kartu jenis Penyetoran Sendiri hanya menambah kredit pajak tanpa menambah neto.</div>',
+        });
+      }
+
+      if (bupotFinalRows.length > 0) {
+        const rowsC2 = bupotFinalRows.map((b) => ({
+          cells: [
+            reportEscape(b.short),
+            reportEscape(b.raw.name || '(tanpa nama)'),
+            reportOwnerLabel(b.raw.owner),
+            formatRp(b.totalBruto),
+            formatRp(b.pphFinal),
+          ],
+        }));
+        rowsC2.push({
+          cells: ['Total', '', '', formatRp(sumOf(bupotFinalRows, 'totalBruto')), formatRp(sumOf(bupotFinalRows, 'pphFinal'))],
+          cls: 'rp-total',
+        });
+        blocks.push({
+          kind: 'table',
+          title: 'C.2 Bukti Potong dengan Pajak Final (Lampiran Penghasilan Final)',
+          head: ['Jenis', 'Nama / Instansi', 'Pemilik', 'Bruto', 'PPh Final'],
+          num: [3, 4],
+          rows: rowsC2,
+          note: '<div class="rp-note">PPh 21 Final (pesangon, manfaat pensiun, THT/TJHT) dan PPh Pasal 26 (BPNR/BP26) bersifat final: tidak digabung ke PKP Pasal 17, tidak dapat dikreditkan, dan dilaporkan pada Lampiran Penghasilan Final.</div>',
+        });
+      }
+
+      if (bizNonFinal.length > 0) {
+        const rowsC3 = bizNonFinal.map((r) => ({
+          cells: [
+            reportEscape(r.raw.name || (r.raw.kind === 'bebas' ? 'Pekerjaan Bebas' : 'Usaha')),
+            reportOwnerLabel(r.owner),
+            reportSchemeCell(r),
+            formatRp(r.gross),
+            formatRp(r.neto),
+            formatRp(r.creditOther + r.pph25),
+          ],
+        }));
+        rowsC3.push({
+          cells: ['Total', '', '', formatRp(sumOf(bizNonFinal, 'gross')), formatRp(sumOf(bizNonFinal, 'neto')), formatRp(bizNonFinal.reduce((s, r) => s + r.creditOther + r.pph25, 0))],
+          cls: 'rp-total',
+        });
+        blocks.push({
+          kind: 'table',
+          title: 'C.3 Usaha & Pekerjaan Bebas Non-Final',
+          head: ['Nama', 'Pemilik', 'Jenis & Skema', 'Omzet', 'Neto', 'Kredit PPh'],
+          num: [3, 4, 5],
+          rows: rowsC3,
+          note: '<div class="rp-note">Neto NPPN = omzet x persentase norma (PER-17/PJ/2015), neto Pembukuan = omzet dikurangi biaya. Kolom kredit memuat PPh 21 bukan pegawai, PPh 22, PPh 23, dan angsuran PPh 25 yang melekat pada kartu usaha.</div>',
+        });
+      }
+
+      if (bizFinal.length > 0) {
+        const rowsC4 = bizFinal.map((r) => ({
+          cells: [
+            reportEscape(r.raw.name || 'Usaha'),
+            reportOwnerLabel(r.owner),
+            formatRp(r.gross),
+            formatRp(r.quotaUsed),
+            formatRp(r.finalTaxable),
+            formatRp(r.finalTax),
+            formatRp(r.finalPaid),
+          ],
+        }));
+        rowsC4.push({
+          cells: ['Total', '', formatRp(sumOf(bizFinal, 'gross')), formatRp(sumOf(bizFinal, 'quotaUsed')), formatRp(sumOf(bizFinal, 'finalTaxable')), formatRp(sumOf(bizFinal, 'finalTax')), formatRp(sumOf(bizFinal, 'finalPaid'))],
+          cls: 'rp-total',
+        });
+        const finalDiff = calc.finalDiff;
+        const finalNote = finalDiff > 0
+          ? `Kurang setor PPh Final ${formatRp(finalDiff)}, kode billing KAP 411128, KJS 420.`
+          : (finalDiff < 0 ? `Lebih setor PPh Final ${formatRp(Math.abs(finalDiff))}.` : 'Setoran PPh Final sudah sesuai.');
+        blocks.push({
+          kind: 'table',
+          title: 'C.4 Usaha dengan PPh Final UMKM 0,5%',
+          head: ['Nama', 'Pemilik', 'Omzet', 'Bebas PPh (kuota)', 'Dasar Kena Final', 'PPh Final', 'Sudah Disetor'],
+          num: [2, 3, 4, 5, 6],
+          rows: rowsC4,
+          note: `<div class="rp-note">Tarif 0,5% (PP 55/2022 jo. PP 20/2026) dengan kuota omzet bebas PPh Rp 500 juta untuk Orang Pribadi (PMK 164/2023), dihitung gabungan pada status KK dan terpisah per suami/istri pada status PH/MT. ${finalNote}</div>`,
+        });
+      }
+
+      const creditCards = [...calc.activeCreditsH, ...calc.activeCreditsW];
+      if (creditCards.length > 0) {
+        const rowsC5 = creditCards.map((c) => {
+          const extraNeto = taxCreditNeto(c);
+          return {
+            cells: [
+              `${reportEscape(getCreditTaxMeta(c.taxType).short)}${extraNeto > 0 ? ` · +neto ${formatRp(extraNeto)}` : ''}`,
+              reportEscape(c.withholder || '-'),
+              reportEscape(c.docNumber || '-'),
+              Number(c.grossAmount) > 0 ? formatRp(c.grossAmount) : '-',
+              reportOwnerLabel(c.owner),
+              formatRp(taxCreditAmount(c)),
+            ],
+          };
+        });
+        rowsC5.push({
+          cells: ['Total', '', '', '', '', formatRp(creditCards.reduce((s, c) => s + taxCreditAmount(c), 0))],
+          cls: 'rp-total',
+        });
+        blocks.push({
+          kind: 'table',
+          title: 'C.5 Kredit Pajak Mandiri (Lampiran 1E)',
+          head: ['Jenis', 'Pemotong / Pemungut', 'Nomor Bukti', 'Bruto / DPP', 'Pemilik', 'Kredit'],
+          num: [3, 5],
+          rows: rowsC5,
+          note: '<div class="rp-note">Kartu dengan opsi penambahan penghasilan neto menambah PKP sebesar nilai netonya, sedangkan kartu lain hanya menambah kredit pajak. PPh final dan sanksi administrasi tidak dapat dikreditkan.</div>',
+        });
+      }
+
+      if (calc.foreignRows && calc.foreignRows.length > 0) {
+        const rowsC6 = calc.foreignRows.map((f) => ({
+          cells: [
+            reportEscape(f.raw.country || 'Luar Negeri'),
+            reportEscape(reportForeignTypeLabel(f.raw.incomeType)),
+            formatRp(f.netoLn),
+            formatRp(f.taxPaidLn),
+            formatRp(f.maxLimit),
+            `${formatRp(f.allowedCredit)}${(f.cappedByLimit || f.cappedByTotalTax) ? ' (dibatasi)' : ''}`,
+          ],
+        }));
+        rowsC6.push({
+          cells: ['Total', '', formatRp(sumOf(calc.foreignRows, 'netoLn')), formatRp(sumOf(calc.foreignRows, 'taxPaidLn')), '', formatRp(sumOf(calc.foreignRows, 'allowedCredit'))],
+          cls: 'rp-total',
+        });
+        blocks.push({
+          kind: 'table',
+          title: 'C.6 Kredit Pajak Luar Negeri (Lampiran 2C)',
+          head: ['Negara', 'Jenis Penghasilan', 'Neto LN', 'Pajak Dibayar LN', 'Batas Maksimum', 'Diakui'],
+          num: [2, 3, 4, 5],
+          rows: rowsC6,
+          note: '<div class="rp-note">Batas maksimum per negara = (Neto LN / PKP) x PPh Terutang, dan total PPh Pasal 24 tidak boleh melebihi PPh Terutang (PMK 192/PMK.03/2018). Hanya penghasilan luar negeri neto positif yang menambah PKP.</div>',
+        });
+      }
+
+      const selfCreditRows = [];
+      const d = calc.creditDetailTotal;
+      if (d.pph25Angsuran > 0) selfCreditRows.push(['Angsuran PPh Pasal 25 dibayar sendiri', `Induk 10b · ${formatRp(d.pph25Angsuran)}`]);
+      if (d.stpPph25 > 0) selfCreditRows.push(['Pokok pajak STP PPh Pasal 25', `Induk 10c · ${formatRp(d.stpPph25)}`]);
+      if (d.pph24Refund > 0) selfCreditRows.push(['Pengembalian / pengurangan kredit PPh LN tahun sebelumnya', `Induk 10d (pengurang kredit) · ${formatRp(d.pph24Refund)}`]);
+      if (selfCreditRows.length > 0) {
+        blocks.push({
+          kind: 'table',
+          title: 'C.7 PPh Dibayar Sendiri & Penyesuaian Kredit',
+          cls: 'rp-kv',
+          head: null,
+          num: [],
+          rows: selfCreditRows.map(([k, v]) => ({ cells: [reportEscape(k), reportEscape(v)] })),
+          note: '<div class="rp-note">STP PPh Pasal 25 hanya pokok pajaknya yang dapat dikreditkan, sanksi bunga/denda tidak. Pengembalian kredit PPh LN menambah pajak yang harus dibayar (Pasal 24 ayat 5 UU PPh).</div>',
+        });
+      }
+
+      // --- D. Kertas kerja ---
+      const includeWifeNeto = calc.mode === 'KK_MERGED' || calc.mode === 'PH_MT';
+      const netoPekerjaan = calc.bupotNetoH + (includeWifeNeto ? calc.bupotNetoW : 0);
+      const netoUsaha = calc.bizNetoH + (includeWifeNeto ? calc.bizNetoW : 0);
+      const netoLain = calc.otherNetoH + (includeWifeNeto ? calc.otherNetoW : 0);
+      const netoLn = calc.foreignNetoH + (includeWifeNeto ? calc.foreignNetoW : 0);
+      const netoSubRows = [];
+      const activeNetoSources = [netoPekerjaan, netoUsaha, netoLain, netoLn].filter((v) => v > 0).length;
+      if (activeNetoSources > 1 || netoLn > 0 || netoLain > 0) {
+        if (netoPekerjaan > 0) netoSubRows.push([`Neto pekerjaan (${calc.bupotFormLabel})`, formatRp(netoPekerjaan)]);
+        if (netoUsaha > 0) netoSubRows.push(['Neto usaha / pekerjaan bebas', formatRp(netoUsaha)]);
+        if (netoLain > 0) netoSubRows.push(['Neto dalam negeri lainnya', formatRp(netoLain)]);
+        if (netoLn > 0) netoSubRows.push(['Neto luar negeri (worldwide income)', formatRp(netoLn)]);
+      }
+
+      const rowsD = [];
+      rowsD.push({
+        cells: [includeWifeNeto ? 'Total penghasilan neto gabungan' : 'Total penghasilan neto', `<strong>${formatRp(calc.netoForTax)}</strong>`],
+      });
+      netoSubRows.forEach(([lbl, val]) => rowsD.push({ cells: [reportEscape(lbl), reportEscape(val)], cls: 'rp-sub' }));
+      if (calc.zakatForTax > 0) rowsD.push({ cells: ['Pengurang zakat / sumbangan keagamaan wajib', `( ${formatRp(calc.zakatForTax)} )`] });
+      rowsD.push({ cells: [`PTKP (${calc.ptkp.code})`, `( ${formatRp(calc.ptkp.amount)} )`] });
+      rowsD.push({ cells: ['Penghasilan Kena Pajak (PKP)', `<strong>${formatRp(calc.pkp)}</strong>`], cls: 'rp-total' });
+      if (calc.pkpRaw !== calc.pkp) {
+        rowsD.push({ cells: ['Dibulatkan ke bawah ribuan penuh dari', `${formatRp(calc.pkpRaw)} (Pasal 17 ayat 4 UU PPh)`], cls: 'rp-sub' });
+      }
+      rowsD.push({ cells: ['PPh Terutang setahun (UU HPP)', `<strong>${formatRp(calc.pphTerutang)}</strong>`] });
+      rowsD.push({ cells: ['Total kredit pajak diperhitungkan (Pasal 28 UU PPh)', calc.kredit >= 0 ? `( ${formatRp(calc.kredit)} )` : `+ ${formatRp(Math.abs(calc.kredit))}`] });
+
+      const creditSubRows = [];
+      if (d.pph21Karyawan > 0) creditSubRows.push([`PPh dipotong pihak lain / disetor sendiri (${calc.bupotFormLabel})`, formatRp(d.pph21Karyawan)]);
+      if (d.pph21Lain > 0) creditSubRows.push(['PPh Pasal 21 bukan pegawai / lainnya', formatRp(d.pph21Lain)]);
+      if (d.pph22 > 0) creditSubRows.push(['PPh Pasal 22 (pemungutan pihak lain)', formatRp(d.pph22)]);
+      if (d.pph23 > 0) creditSubRows.push(['PPh Pasal 23 (pemotongan pihak lain)', formatRp(d.pph23)]);
+      if (d.pph24 > 0) creditSubRows.push(['PPh Pasal 24 (kredit pajak luar negeri)', formatRp(d.pph24)]);
+      if (d.pph26DtpLain > 0) creditSubRows.push(['PPh Pasal 26(5) / DTP / Pasal 15', formatRp(d.pph26DtpLain)]);
+      if (d.pph25Angsuran > 0) creditSubRows.push(['Angsuran PPh Pasal 25 dibayar sendiri', formatRp(d.pph25Angsuran)]);
+      if (d.stpPph25 > 0) creditSubRows.push(['Pokok pajak STP PPh Pasal 25', formatRp(d.stpPph25)]);
+      if (d.pph24Refund > 0) creditSubRows.push(['Pengembalian kredit PPh LN (Pasal 24 ayat 5)', `+ ${formatRp(d.pph24Refund)}`]);
+      if (creditSubRows.length > 1) {
+        creditSubRows.forEach(([lbl, val]) => rowsD.push({ cells: [reportEscape(lbl), reportEscape(val)], cls: 'rp-sub' }));
+      }
+
+      if (calc.mode === 'PH_MT') {
+        rowsD.push({ cells: ['PPh Terutang proporsional Suami', formatRp(calc.taxH)] });
+        rowsD.push({ cells: ['PPh Terutang proporsional Istri', formatRp(calc.taxW)] });
+        rowsD.push({ cells: ['Status SPT Suami', `${getStatusMeta(calc.diffH).short} ${getStatusMeta(calc.diffH).display}`] });
+        rowsD.push({ cells: ['Status SPT Istri', `${getStatusMeta(calc.diffW).short} ${getStatusMeta(calc.diffW).display}`] });
+      } else {
+        rowsD.push({ cells: [finalLabel, `<strong>${formatRp(Math.abs(calc.diff))}</strong>`], cls: 'rp-grand' });
+      }
+
+      blocks.push({
+        kind: 'table',
+        title: 'D. Kertas Kerja Perhitungan SPT',
+        head: ['Uraian', 'Nominal'],
+        num: [1],
+        rows: rowsD,
+        note: calc.mode === 'KK_FINAL'
+          ? `<div class="rp-note">Penghasilan istri bersifat final: neto ${formatRp(calc.netoW)} dengan PPh dipotong ${formatRp(calc.pphW)}, dilaporkan pada Lampiran Penghasilan Final SPT suami dan tidak mengurangi PKP.</div>`
+          : '',
+      });
+
+      // --- E. Lapisan tarif ---
+      const bracketRows = calc.tax.breakdown.filter((b) => b.taxable > 0).map((b) => ({
+        cells: [reportEscape(b.label), reportEscape(b.range), formatRp(b.taxable), formatRp(b.tax)],
+      }));
+      if (bracketRows.length > 0) {
+        bracketRows.push({ cells: ['Total', '', formatRp(calc.pkp), formatRp(calc.tax.totalTax)], cls: 'rp-total' });
+        blocks.push({
+          kind: 'table',
+          title: 'E. Rincian Lapisan Tarif Progresif (Pasal 17 UU HPP)',
+          head: ['Lapisan', 'Rentang PKP', 'Dasar Pengenaan', 'PPh'],
+          num: [2, 3],
+          rows: bracketRows,
+        });
+      } else {
+        blocks.push({
+          kind: 'table',
+          title: 'E. Rincian Lapisan Tarif Progresif (Pasal 17 UU HPP)',
+          head: null,
+          cls: 'rp-kv',
+          num: [],
+          rows: [{ cells: ['Hasil', 'PKP Rp 0, belum memasuki lapisan tarif PPh Pasal 17'] }],
+        });
+      }
+
+      // --- F. Rekapitulasi kredit pajak ---
+      const creditRecap = [];
+      if (d.pph21Karyawan > 0) creditRecap.push(['PPh dipotong pihak lain / disetor sendiri', 'Lampiran 1E / Bukti Potong', d.pph21Karyawan]);
+      if (d.pph21Lain > 0) creditRecap.push(['PPh Pasal 21 bukan pegawai / lainnya', 'Lampiran 1E', d.pph21Lain]);
+      if (d.pph22 > 0) creditRecap.push(['PPh Pasal 22 (pemungutan pihak lain)', 'Lampiran 1E / Induk 10a', d.pph22]);
+      if (d.pph23 > 0) creditRecap.push(['PPh Pasal 23 (pemotongan pihak lain)', 'Lampiran 1E / Induk 10a', d.pph23]);
+      if (d.pph24 > 0) creditRecap.push(['PPh Pasal 24 (kredit pajak luar negeri)', 'Lampiran 2C / PMK 192/2018', d.pph24]);
+      if (d.pph26DtpLain > 0) creditRecap.push(['PPh Pasal 26(5) / DTP / Pasal 15', 'Lampiran 1E / Induk 10a', d.pph26DtpLain]);
+      if (d.pph25Angsuran > 0) creditRecap.push(['Angsuran PPh Pasal 25 dibayar sendiri', 'Induk 10b', d.pph25Angsuran]);
+      if (d.stpPph25 > 0) creditRecap.push(['Pokok pajak STP PPh Pasal 25', 'Induk 10c', d.stpPph25]);
+      const recapRows = creditRecap.map(([lbl, src, val]) => ({
+        cells: [reportEscape(lbl), reportEscape(src), formatRp(val)],
+      }));
+      if (d.pph24Refund > 0) {
+        recapRows.push({ cells: ['Pengembalian kredit PPh LN (Pasal 24 ayat 5)', 'Induk 10d (pengurang kredit)', `( ${formatRp(d.pph24Refund)} )`] });
+      }
+      recapRows.push({ cells: ['Total kredit pajak diperhitungkan', 'Pasal 28 UU PPh', `<strong>${formatRp(calc.kredit)}</strong>`], cls: 'rp-total' });
+      blocks.push({
+        kind: 'table',
+        title: 'F. Rekapitulasi Kredit Pajak yang Diperhitungkan',
+        head: ['Jenis Kredit Pajak', 'Referensi Coretax', 'Nominal'],
+        num: [2],
+        rows: recapRows,
+      });
+
+      // --- G. Angsuran PPh Pasal 25 ---
+      const pph25 = computePph25Data(calc);
+      if (pph25) {
+        const rowsG = [];
+        if (pph25.mode === 'PH_MT') {
+          rowsG.push(['Angsuran PPh Pasal 25 Suami per bulan (1/12)', formatRp(pph25.monthlyH)]);
+          rowsG.push(['Angsuran PPh Pasal 25 Istri per bulan (1/12)', formatRp(pph25.monthlyW)]);
+          rowsG.push(['Dasar perhitungan Suami', `(PPh Terutang ${formatRp(pph25.taxH)} - kredit pihak lain ${formatRp(pph25.kreditH)}) / 12`]);
+          rowsG.push(['Dasar perhitungan Istri', `(PPh Terutang ${formatRp(pph25.taxW)} - kredit pihak lain ${formatRp(pph25.kreditW)}) / 12`]);
+        } else {
+          rowsG.push(['Angsuran PPh Pasal 25 per bulan (1/12)', formatRp(pph25.monthly)]);
+          rowsG.push(['Dasar perhitungan', `(PPh Terutang ${formatRp(calc.pphTerutang)} - kredit pihak lain ${formatRp(pph25.kreditPihakLain)}) / 12`]);
+        }
+        if (pph25.opptMonthly > 0) {
+          rowsG.push(['Alternatif WP OPPT (0,75% omzet bulanan)', formatRp(pph25.opptMonthly)]);
+        }
+        blocks.push({
+          kind: 'table',
+          title: 'G. Estimasi Angsuran PPh Pasal 25 Tahun Berikutnya',
+          cls: 'rp-kv',
+          head: null,
+          num: [],
+          rows: rowsG.map(([k, v]) => ({ cells: [reportEscape(k), reportEscape(v)] })),
+          note: '<div class="rp-note">Angsuran disetor paling lambat tanggal 15 bulan berikutnya dengan kode KAP 411125, KJS 100. Dasar perhitungan tidak dikurangi angsuran PPh 25 dan pokok STP yang sudah dibayar pada tahun berjalan. WP OPPT dapat memakai 0,75% dari omzet bulanan per tempat usaha (Pasal 234 PMK 81/2024).</div>',
+        });
+      }
+
+      // --- H. Lembar proporsional PH/MT ---
+      if (calc.mode === 'PH_MT') {
+        const rowsH = [
+          { cells: ['Penghasilan neto efektif', formatRp(calc.netoEffH), formatRp(calc.netoEffW)] },
+          { cells: ['Proporsi penghasilan neto', `${(calc.ratioH * 100).toFixed(2).replace('.', ',')}%`, `${(calc.ratioW * 100).toFixed(2).replace('.', ',')}%`] },
+          { cells: ['PPh Terutang proporsional', formatRp(calc.taxH), formatRp(calc.taxW)] },
+          { cells: ['Total kredit pajak', calc.pphH >= 0 ? `( ${formatRp(calc.pphH)} )` : `+ ${formatRp(Math.abs(calc.pphH))}`, calc.pphW >= 0 ? `( ${formatRp(calc.pphW)} )` : `+ ${formatRp(Math.abs(calc.pphW))}`] },
+          { cells: ['Hasil SPT masing-masing', `${getStatusMeta(calc.diffH).short} ${getStatusMeta(calc.diffH).display}`, `${getStatusMeta(calc.diffW).short} ${getStatusMeta(calc.diffW).display}`], cls: 'rp-total' },
+        ];
+        blocks.push({
+          kind: 'table',
+          title: 'H. Lembar Penghitungan Proporsional PH / MT (Pasal 8 ayat 3)',
+          head: ['Komponen', 'Suami', 'Istri'],
+          num: [1, 2],
+          rows: rowsH,
+          note: `<div class="rp-note">PTKP yang digunakan ${reportEscape(calc.ptkp.code)} sebesar ${formatRp(calc.ptkp.amount)}. Neto suami dan istri digabung untuk menentukan lapisan tarif, lalu PPh Terutang dibagi sesuai proporsi neto masing-masing.</div>`,
+        });
+      }
+
+      // --- I. Perbandingan skema usaha ---
+      const schemeCmp = computeSchemeComparison(calc, compareNormaOverride);
+      if (schemeCmp) {
+        const rowsI = [
+          { cells: ['Penghasilan Kena Pajak (PKP)', formatRp(schemeCmp.simFinal.pkp), formatRp(schemeCmp.simNppn.pkp)] },
+          { cells: ['PPh non-final (Pasal 17)', formatRp(schemeCmp.simFinal.pphTerutang), formatRp(schemeCmp.simNppn.pphTerutang)] },
+          { cells: ['PPh Final UMKM 0,5%', formatRp(schemeCmp.simFinal.finalTaxTotal), formatRp(schemeCmp.simNppn.finalTaxTotal)] },
+          { cells: ['Total pajak keluarga', `<strong>${formatRp(schemeCmp.taxFinal)}</strong>`, `<strong>${formatRp(schemeCmp.taxNppn)}</strong>`], cls: 'rp-total' },
+        ];
+        blocks.push({
+          kind: 'table',
+          title: 'I. Perbandingan Skema Usaha: Final UMKM 0,5% vs NPPN',
+          head: ['Indikator', 'Final UMKM 0,5%', 'Pencatatan NPPN'],
+          num: [1, 2],
+          rows: rowsI,
+          note: `<div class="rp-note">${schemeCmp.note}${schemeCmp.useOverride ? ` Asumsi simulasi memakai persentase norma ${schemeCmp.useOverride}%.` : ''}${schemeCmp.hasNonSembilan ? ' Ada kartu NPPN dengan norma 0%, lengkapi KLU/zona agar perbandingan akurat.' : ''}</div>`,
+        });
+      }
+
+      // --- J. Perbandingan status ---
+      const statusCmp = computeStatusComparison(calc);
+      if (statusCmp) {
+        const rowsJ = [
+          { cells: ['PTKP digunakan', reportEscape(statusCmp.simKK.ptkp.code), reportEscape(statusCmp.simPH.ptkp.code)] },
+          { cells: ['PPh non-final (Pasal 17)', formatRp(statusCmp.simKK.pphTerutang), formatRp(statusCmp.simPH.pphTerutang)] },
+        ];
+        if (statusCmp.simKK.finalTaxTotal > 0 || statusCmp.simPH.finalTaxTotal > 0) {
+          rowsJ.push({ cells: ['PPh Final UMKM 0,5%', formatRp(statusCmp.simKK.finalTaxTotal), formatRp(statusCmp.simPH.finalTaxTotal)] });
+        }
+        rowsJ.push({ cells: ['Total pajak keluarga', `<strong>${formatRp(statusCmp.simKK.familyTotalTax)}</strong>`, `<strong>${formatRp(statusCmp.simPH.familyTotalTax)}</strong>`], cls: 'rp-total' });
+        const fmtSigned = (x) => (x > 0 ? `KB ${formatRp(x)}` : (x < 0 ? `LB ${formatRp(Math.abs(x))}` : 'Nihil'));
+        rowsJ.push({ cells: ['Selisih kurang / lebih bayar', fmtSigned(statusCmp.simKK.familyTotalDiff), fmtSigned(statusCmp.simPH.familyTotalDiff)] });
+        blocks.push({
+          kind: 'table',
+          title: 'J. Perbandingan Status: KK (Gabung) vs PH / MT (Terpisah)',
+          head: ['Indikator', 'Opsi KK (gabung)', 'Opsi PH / MT'],
+          num: [1, 2],
+          rows: rowsJ,
+          note: `<div class="rp-note">${statusCmp.note}</div>`,
+        });
+      }
+
+      // --- K. Catatan & dasar hukum ---
+      blocks.push({
+        kind: 'html',
+        html: `
+          <div class="rp-h2">K. Catatan, Dasar Hukum & Disclaimer</div>
+          <ul class="rp-note-list">
+            <li>Dokumen ini dihasilkan otomatis oleh aplikasi Simulasi SPT Tahunan PPh OP. Dokumen bukan SPT, bukan bukti pelaporan, dan tidak menggantikan perhitungan resmi DJP.</li>
+            <li>Tarif Pasal 17 UU HPP (5%, 15%, 25%, 30%, 35%) dengan PKP dibulatkan ke bawah dalam ribuan penuh (Pasal 17 ayat 4 UU PPh).</li>
+            <li>PPh Final UMKM 0,5% mengacu PP 55/2022 jo. PP 20/2026 dan PMK 164/2023, dengan kuota omzet bebas PPh Rp 500 juta bagi Orang Pribadi.</li>
+            <li>NPPN mengacu PER-17/PJ/2015 (persentase norma per KLU dan zona wilayah); Pembukuan wajib saat peredaran bruto gabungan mencapai Rp 4,8 miliar.</li>
+            <li>PTKP, Biaya Jabatan 5% (maks. Rp 500.000 per bulan), dan DPP 50% bukan pegawai mengacu PMK 101/PMK.010/2016 dan PMK 168/2023.</li>
+            <li>Kredit pajak luar negeri mengacu Pasal 24 UU PPh dan PMK 192/PMK.03/2018; angsuran PPh Pasal 25 mengacu Pasal 25 UU PPh dan PMK 81/2024.</li>
+            <li>Penyampaian SPT dilakukan melalui Coretax DJP (PER-11/PJ/2025). Verifikasi kembali seluruh angka dengan bukti potong, catatan keuangan, dan bukti setor sebelum melaporkan SPT.</li>
+          </ul>
+        `,
+      });
+
+      return { meta, blocks };
+    }
+
+    // ---------------------------------------------------------------------------
+    // Paginasi: ukur tinggi blok nyata, lalu susun halaman A4.
+    // ---------------------------------------------------------------------------
+    function reportMeasure(html) {
+      const probe = document.getElementById('report-probe');
+      if (!probe) return 0;
+      const holder = document.createElement('div');
+      // Penanda 0px di depan agar .rp-h2 di dalam blok selalu terukur DENGAN margin atasnya
+      // (di halaman nyata blok ke-2 dan seterusnya juga bermargin), sehingga hasil ukur
+      // tidak pernah lebih kecil dari tinggi nyata.
+      holder.innerHTML = '<div class="rp-marker"></div>' + html;
+      probe.appendChild(holder);
+      const height = holder.offsetHeight;
+      probe.removeChild(holder);
+      return height;
+    }
+
+    function reportContentHeight() {
+      const probe = document.getElementById('report-probe');
+      if (!probe) return 0;
+      probe.style.width = '210mm';
+      const holder = document.createElement('div');
+      holder.innerHTML = '<div class="report-page"><div class="rp-body"></div><div class="rp-pagefoot"><span>Laporan</span><span>Halaman 1 dari 1</span></div></div>';
+      probe.appendChild(holder);
+      const page = holder.firstElementChild;
+      const cs = getComputedStyle(page);
+      const footer = page.querySelector('.rp-pagefoot');
+      const fcs = getComputedStyle(footer);
+      const padding = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+      const footerBox = footer.offsetHeight + (parseFloat(fcs.marginTop) || 0) + (parseFloat(fcs.borderTopWidth) || 0);
+      const available = page.clientHeight - padding - footerBox - 10;
+      probe.removeChild(holder);
+      probe.style.width = '180mm';
+      return Math.max(140, Math.round(available));
+    }
+
+    function reportTableHtml(block, from, to, isCont) {
+      const nums = block.num || [];
+      const title = block.title
+        ? `<div class="rp-h2">${block.title}${isCont ? ' <span class="rp-h2-cont">(lanjutan)</span>' : ''}</div>`
+        : '';
+      const head = block.head
+        ? `<thead><tr>${block.head.map((h, i) => `<th class="${nums.indexOf(i) >= 0 ? 'rp-num' : ''}">${h}</th>`).join('')}</tr></thead>`
+        : '';
+      const rows = block.rows.slice(from, to).map((r) => `<tr class="${r.cls || ''}">${r.cells.map((c, i) => `<td class="${nums.indexOf(i) >= 0 ? 'rp-num' : ''}">${c}</td>`).join('')}</tr>`).join('');
+      const note = (from === 0 && block.note) ? block.note : '';
+      return `${title}<table class="rp-table ${block.cls || ''}">${head}<tbody>${rows}</tbody></table>${note}`;
+    }
+
+    function reportPackBlocks(blocks, available) {
+      const pages = [];
+      let current = [];
+      let used = 0;
+      const flush = () => {
+        if (current.length) {
+          pages.push(current);
+          current = [];
+          used = 0;
+        }
+      };
+
+      blocks.forEach((block) => {
+        if (block.kind !== 'table' || !block.rows || block.rows.length === 0) {
+          const height = reportMeasure(block.html || '');
+          if (used + height > available && current.length) flush();
+          current.push(block);
+          used += height;
+          return;
+        }
+
+        let index = 0;
+        while (index < block.rows.length) {
+          const space = available - used;
+          let take = block.rows.length - index;
+          const full = reportTableHtml(block, index, index + take, index > 0);
+
+          if (reportMeasure(full) > space) {
+            let low = 1;
+            let high = take;
+            let best = 0;
+            while (low <= high) {
+              const mid = Math.floor((low + high) / 2);
+              const html = reportTableHtml(block, index, index + mid, index > 0);
+              if (reportMeasure(html) <= space) {
+                best = mid;
+                low = mid + 1;
+              } else {
+                high = mid - 1;
+              }
+            }
+            if (best === 0) {
+              if (current.length) {
+                flush();
+                continue;
+              }
+              take = 1;
+            } else {
+              take = best;
+            }
+          }
+
+          const partHtml = reportTableHtml(block, index, index + take, index > 0);
+          const partHeight = reportMeasure(partHtml);
+          current.push({ kind: 'html', html: partHtml });
+          used += partHeight;
+          index += take;
+          if (index < block.rows.length) flush();
+        }
+      });
+
+      flush();
+      return pages.length ? pages : [[]];
+    }
+
+    function renderReport(calc) {
+      const model = buildReportBlocks(calc);
+      const available = reportContentHeight();
+      const pages = reportPackBlocks(model.blocks, available);
+      const total = pages.length;
+      const root = document.getElementById('report-root');
+
+      root.innerHTML = pages.map((blocks, i) => `
+        <div class="report-page">
+          <div class="rp-body">${blocks.map((b) => b.html).join('')}</div>
+          <div class="rp-pagefoot">
+            <span>Laporan Simulasi SPT Tahunan PPh OP · Tahun Pajak ${model.meta.year}</span>
+            <span>Dokumen simulasi, bukan SPT resmi</span>
+            <span>Halaman ${i + 1} dari ${total}</span>
+          </div>
+        </div>
+      `).join('');
+
+      const toolbarMeta = document.getElementById('report-toolbar-meta');
+      if (toolbarMeta) {
+        toolbarMeta.textContent = `${model.meta.docNo} · ${model.meta.dateInfo.dateStr} · Status ${calc.status} · ${total} halaman`;
+      }
+
+      return { pages: total, model };
+    }
+
+    function openReport() {
+      const calc = evaluateScenario();
+      if (!calc.hasAnyActive) {
+        showToast('Belum ada data penghasilan untuk dicetak');
+        return null;
+      }
+      lastCalc = calc;
+      const overlay = document.getElementById('report-overlay');
+      // Overlay harus tampil dulu: pengukuran tinggi blok (.rp-probe) butuh layout nyata,
+      // dan elemen di dalam subtree display:none selalu terukur 0.
+      overlay.classList.remove('hidden');
+      document.body.classList.add('report-open');
+      const result = renderReport(calc);
+      const scroll = overlay.querySelector('.report-scroll');
+      if (scroll) scroll.scrollTop = 0;
+      const printBtn = document.getElementById('report-print-btn');
+      if (printBtn) printBtn.focus({ preventScroll: true });
+      return result;
+    }
+
+    function closeReport() {
+      const overlay = document.getElementById('report-overlay');
+      overlay.classList.add('hidden');
+      document.body.classList.remove('report-open');
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const overlay = document.getElementById('report-overlay');
+      if (overlay && !overlay.classList.contains('hidden')) closeReport();
+    });
 
     // =========================================================================
     // 9. INISIALISASI AWAL (100% KOSONG, TANPA PRESET / DUMMY)
