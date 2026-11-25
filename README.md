@@ -32,10 +32,10 @@ Live demo: https://spt-op.pages.dev
 5. **Panel Hasil, Perbandingan & Ekspor**
    - Status akhir SPT (**Kurang Bayar PPh 29**, **Lebih Bayar PPh 28A**, atau **Nihil**) beserta kode billing (`KAP 411125 - KJS 200` dan `KAP 411128 - KJS 420`).
    - Kertas Kerja Perhitungan SPT, rincian lapisan tarif progresif UU HPP, rincian kredit pajak, estimasi angsuran PPh Pasal 25 tahun berikutnya (termasuk alternatif WP OPPT 0,75%), perbandingan skema Final 0,5% vs NPPN, dan perbandingan `KK` vs `PH/MT`.
-   - Auto-save ke `localStorage`, tombol **Salin Ringkasan**, dan **Cetak Laporan PDF**.
+   - Auto-save ke `localStorage`, tombol **Salin Ringkasan**, dan **Cetak PDF**.
 
 6. **Laporan Simulasi (Cetak / Simpan PDF)**
-   - Tombol **Cetak Laporan PDF** membuka pratinjau dokumen A4 terpisah, bukan mencetak tampilan halaman aplikasi.
+   - Tombol **Cetak PDF** membuka pratinjau dokumen A4 terpisah, bukan mencetak tampilan halaman aplikasi.
    - Isi laporan: kop + nomor dokumen + tanggal simulasi, banner status akhir (Kurang Bayar / Lebih Bayar / Nihil beserta kode billing), lalu bagian bernomor: **A** Identitas & Status Perpajakan, **B** Ringkasan Hasil, **C** Rincian Sumber Penghasilan (C.1 bukti potong non-final, C.2 bukti potong final, C.3 usaha & pekerjaan bebas non-final, C.4 PPh Final UMKM 0,5%, C.5 kredit pajak mandiri Lampiran 1E, C.6 kredit pajak luar negeri Lampiran 2C, C.7 PPh dibayar sendiri Induk 10b-10d), **D** Kertas Kerja Perhitungan SPT, **E** Rincian Lapisan Tarif Pasal 17, **F** Rekapitulasi Kredit Pajak, **G** Estimasi Angsuran PPh Pasal 25 tahun berikutnya (termasuk alternatif WP OPPT), **H** Lembar Penghitungan Proporsional PH/MT, **I** Perbandingan skema Final 0,5% vs NPPN, **J** Perbandingan status KK vs PH/MT, **K** Catatan, Dasar Hukum & Disclaimer.
    - Paginasi dihitung dari tinggi blok nyata: tabel panjang terpotong rapi dengan header berulang dan label "(lanjutan)", dan setiap halaman memuat footer `Halaman X dari N`.
    - Mode cetak hanya mengeluarkan dokumen laporan, sehingga elemen antarmuka aplikasi (header, tombol, toast) tidak ikut tercetak.
