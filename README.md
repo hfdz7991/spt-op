@@ -34,7 +34,7 @@ Live demo: https://spt-op.pages.dev
    - Auto-save ke `localStorage`, tombol **Salin Ringkasan**, dan **Cetak / PDF**.
 
 6. **Header & Footer**
-   - Header: tombol **Reset isian** dan tombol dukungan **Saweria** (`https://saweria.co/Hansdev`, terbuka di tab baru).
+   - Header: tombol **Reset isian** dan tombol dukungan **Donate** (`https://saweria.co/Hansdev`, terbuka di tab baru).
    - Footer: kanal kirim kritik, saran, masukan, atau laporan bug ke email **email@hansdev.web.id** (tautan `mailto:` dengan subjek otomatis).
    - Tombol donasi dan footer disembunyikan saat cetak / ekspor PDF (`no-print`), karena hasil cetak difokuskan pada kertas kerja SPT.
 
