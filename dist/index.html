@@ -8,7 +8,7 @@
   <!-- Font opsional Plus Jakarta Sans dengan fallback system-ui agar tetap berjalan 100% offline -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&display=swap" rel="stylesheet" />
 
   <style>
     /* =========================================================================
@@ -160,6 +160,29 @@
       line-height: 1.1;
       letter-spacing: -0.03em;
       color: var(--text);
+    }
+
+    /* Aksen coretan (marker) pada kata kunci di judul halaman */
+    .page-title .title-hl {
+      position: relative;
+      display: inline-block;
+      z-index: 0;
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .page-title .title-hl::before {
+      content: "";
+      position: absolute;
+      left: -0.14em;
+      right: -0.1em;
+      top: 56%;
+      height: 0.44em;
+      transform: translateY(-50%) rotate(-1deg);
+      border-radius: 3px;
+      background: linear-gradient(90deg, rgba(247, 195, 126, 0.95) 0%, rgba(244, 176, 92, 0.95) 100%);
+      z-index: -1;
+      pointer-events: none;
     }
 
     .page-lead {
@@ -2854,7 +2877,7 @@
   <!-- ==================== HEADER (tanpa navbar) ==================== -->
   <header class="container page-head">
     <p class="eyebrow">PPh orang pribadi</p>
-    <h1 class="page-title">Simulasi PPh untuk lapor SPT Tahunan</h1>
+    <h1 class="page-title">Simulasi PPh untuk lapor <span class="title-hl">SPT Tahunan</span></h1>
     <p class="page-lead">Hitung PPh terutang setahun dari seluruh penghasilan Anda, termasuk bila punya lebih dari satu pemberi kerja atau usaha, lalu bandingkan dengan pajak yang sudah dipotong dan kredit pajak lain.</p>
     <div class="page-head-actions no-print">
       <button type="button" class="btn" onclick="resetApp()">Reset isian</button>
