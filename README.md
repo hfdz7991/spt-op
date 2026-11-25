@@ -11,11 +11,12 @@ Live demo: https://spt-op.pages.dev
    - Pengurang Zakat / Sumbangan Keagamaan Wajib (Pasal 9 ayat 1 huruf g UU PPh).
    - Penanganan status final istri 1 pemberi kerja vs gugur final (`KK_FINAL` vs `KK_MERGED`) serta pembagian proporsional 2 SPT untuk `PH` dan `MT` (Pasal 8 ayat 3 UU PPh).
 
-2. **Menu Karyawan (Multi Bukti Potong 1721)**
+2. **Menu Bukti Potong (Multi Bupot, jenis sesuai eBupot Coretax)**
    - Mendukung banyak bukti potong untuk Suami dan Istri.
-   - **Pilihan Jenis Bukti Potong per kartu:** `1721-A1` (pegawai tetap swasta/BUMN/BUMD), `1721-A2` (pegawai tetap instansi pemerintah/ASN/TNI/Polri), `1721-VI` (bukan pegawai / pegawai tidak tetap / tenaga ahli), dan `1721-VII` (pesangon / manfaat pensiun / THT-TJHT, **final**).
-   - Dua mode input: **Input Langsung** (Neto & PPh 21) dan **Dari Gaji Bruto** (otomatis menghitung Biaya Jabatan 5% maks. Rp 500 rb/bulan untuk 1721-A1/A2, DPP 50% × bruto untuk 1721-VI, atau tarif PPh 21 Final PP 68/2009 untuk 1721-VII).
-   - Perlakuan per jenis: 1721-A1/A2/VI → penghasilan neto digabung ke SPT & PPh 21 dikreditkan; **1721-VII → final**, penghasilan tidak digabung ke PKP Pasal 17, PPh 21 tidak dikreditkan, dan dilaporkan pada kartu ringkasan Lampiran Penghasilan Final.
+   - **Pilihan Jenis Bukti Potong per kartu mengikuti daftar submenu eBupot Coretax DJP** (coretaxpedia "jenis-jenis bukti potong"): `BPPU` (bukti potong pajak unifikasi PPh 22/23/15), `BPNR` (bukti potong non residen), `Penyetoran Sendiri`, `Pemotongan Secara Digunggung`, `BP21` tidak final (bukan pegawai/pegawai tidak tetap/tenaga ahli), `BP21` final (pesangon/manfaat pensiun/THT-TJHT), `BP26` (PPh Pasal 26 bagi WP luar negeri), `BPA1` (masa Desember/terakhir A1), `BPA2` (masa Desember/terakhir A2), `TER` (pemotongan bulanan pegawai tetap dengan TER), dan `Unggah Dokumen` yang dipersamakan dengan bukti pemotongan/pemungutan.
+   - Dua mode input: **Input Langsung** (neto & PPh) dan **Dari Nilai Bruto** (otomatis menghitung Biaya Jabatan 5% maks. Rp 500 rb/bulan untuk BPA1/BPA2/TER, DPP 50% × bruto untuk BP21 tidak final, tarif PP 68/2009 untuk BP21 final, atau tarif PPh 26 20% untuk BPNR/BP26).
+   - Perlakuan per jenis: penghasilan tidak final (BPA1/BPA2/TER/BP21 non-final/BPPU/Digunggung/Unggah Dokumen/Penyetoran Sendiri) digabung ke neto SPT dan PPh-nya dikreditkan (Penyetoran Sendiri hanya menambah kredit, tanpa menambah neto); **BP21 final, BPNR, dan BP26 bersifat final**, tidak digabung ke PKP Pasal 17, tidak dikreditkan, dan dilaporkan pada kartu ringkasan Lampiran Penghasilan Final.
+   - Kunci jenis lama (`1721-A1/A2/VI/VII`) tetap terbaca lewat migrasi otomatis saat memuat data tersimpan.
 
 3. **Menu Usaha & Pekerjaan Bebas**
    - Mendukung 3 skema: **PPh Final UMKM 0,5%** (PP 55/2022 jo. PP 20/2026, kuota bebas pajak Rp 500 juta untuk OP), **Pencatatan NPPN** (preset KLU & 3 zona wilayah PER-17/PJ/2015 + custom %), dan **Pembukuan** (HPP/biaya atau langsung neto fiskal).
