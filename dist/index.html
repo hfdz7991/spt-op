@@ -193,6 +193,7 @@
       transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       white-space: nowrap;
       min-height: 36px;
+      text-decoration: none;
     }
 
     .btn:hover {
@@ -205,6 +206,32 @@
       padding: 6px 10px;
       font-size: 12.5px;
       min-height: 32px;
+    }
+
+    /* Tombol donasi (Saweria) */
+    .btn-donate {
+      border-color: var(--accent-border);
+      background: var(--accent-soft);
+      color: var(--blue-text);
+      font-weight: 600;
+    }
+
+    .btn-donate:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .btn-donate svg {
+      flex: none;
+    }
+
+    /* Di layar sangat sempit, kecilkan tombol donasi agar tetap sebaris dengan tombol reset */
+    @media (max-width: 380px) {
+      .btn-donate {
+        padding: 8px 10px;
+        font-size: 12.5px;
+      }
     }
 
     /* =========================================================================
@@ -1334,6 +1361,56 @@
     }
 
     /* =========================================================================
+       FOOTER: KRITIK, SARAN & LAPORAN
+       ========================================================================= */
+    .page-foot {
+      margin-top: 26px;
+      padding-top: 18px;
+      padding-bottom: 6px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px 20px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .page-foot-note {
+      margin: 0;
+      max-width: 74ch;
+      line-height: 1.55;
+    }
+
+    .page-foot-mail {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: var(--blue-text);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent-border);
+      padding-bottom: 1px;
+      white-space: nowrap;
+    }
+
+    .page-foot-mail:hover {
+      color: var(--accent-hover);
+      border-bottom-color: var(--accent);
+    }
+
+    .page-foot-mail svg {
+      flex: none;
+    }
+
+    .page-foot-meta {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* =========================================================================
        TOAST NOTIFICATION
        ========================================================================= */
     .toast {
@@ -2328,6 +2405,17 @@
     <p class="page-lead">Hitung PPh terutang setahun dari seluruh penghasilan Anda, termasuk bila punya lebih dari satu pemberi kerja atau usaha, lalu bandingkan dengan pajak yang sudah dipotong dan kredit pajak lain.</p>
     <div class="page-head-actions no-print">
       <button type="button" class="btn" onclick="resetApp()">Reset isian</button>
+      <a
+        class="btn btn-donate"
+        href="https://saweria.co/Hansdev"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l8.84 8.84 8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+        <span>Dukung lewat Saweria</span>
+      </a>
     </div>
   </header>
 
@@ -2695,6 +2783,21 @@
       </div>
     </details>
   </main>
+
+  <!-- ==================== FOOTER: KRITIK, SARAN & LAPORAN ==================== -->
+  <footer class="container page-foot no-print">
+    <p class="page-foot-note">
+      Kritik, saran, masukan, atau laporan bisa dikirim ke
+      <a class="page-foot-mail" href="mailto:email@hansdev.web.id?subject=Kritik%20%2F%20Saran%20Aplikasi%20Simulasi%20SPT%20PPh%20OP">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
+        <span>email@hansdev.web.id</span>
+      </a>
+    </p>
+    <span class="page-foot-meta">Simulasi SPT Tahunan PPh Orang Pribadi</span>
+  </footer>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast" role="status" aria-live="polite">Ringkasan tersalin ke clipboard</div>
