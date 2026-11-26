@@ -399,7 +399,7 @@
     }
 
     .status-pill {
-      border: 1px solid transparent;
+      border: none;
       background: transparent;
       border-radius: 9px;
       padding: 9px 6px;
@@ -419,8 +419,7 @@
 
     .status-pill.active {
       background: var(--surface);
-      border-color: var(--border);
-      box-shadow: 0 1px 3px rgba(18, 26, 47, 0.06);
+      box-shadow: 0 1px 3px rgba(18, 26, 47, 0.08);
     }
 
     .status-code {
@@ -496,7 +495,7 @@
       width: 36px;
       height: 34px;
       border-radius: 7px;
-      border: 1px solid transparent;
+      border: none;
       background: transparent;
       font-size: 14px;
       font-weight: 600;
@@ -510,9 +509,8 @@
 
     .dep-btn.active {
       background: var(--surface);
-      border-color: var(--border);
       color: var(--accent);
-      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.06);
+      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.08);
     }
 
     .ptkp-badge {
@@ -522,7 +520,6 @@
       padding: 6px 12px;
       border-radius: 999px;
       background: var(--accent-soft);
-      border: 1px solid var(--accent-border);
       font-size: 13.5px;
       color: var(--blue-text);
     }
@@ -582,7 +579,7 @@
     }
 
     .owner-tab {
-      border: 1px solid transparent;
+      border: none;
       background: transparent;
       border-radius: 9px;
       padding: 9px 12px;
@@ -602,9 +599,8 @@
 
     .owner-tab.active {
       background: var(--surface);
-      border-color: var(--border);
       color: var(--text);
-      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.06);
+      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.08);
     }
 
     .tab-badge {
@@ -634,7 +630,6 @@
 
     .empty-bupot {
       padding: 16px 14px;
-      border: 1px dashed var(--border);
       border-radius: var(--radius-md);
       background: var(--surface-soft);
       color: var(--text-muted);
@@ -651,6 +646,12 @@
     }
 
     .bupot-card:focus-within {
+      background: #EFF2FA;
+    }
+
+    .bupot-card .bruto-preview,
+    .bupot-card .monthly-grid,
+    .bupot-card .wife-checkbox-wrap {
       background: var(--surface-muted);
     }
 
@@ -1062,7 +1063,6 @@
       padding: 9px 12px;
       border-radius: var(--radius-sm);
       background: var(--rose-bg);
-      border: 1px solid var(--rose-border);
       font-size: 13px;
       color: var(--text);
     }
@@ -1831,7 +1831,7 @@
     }
 
     .menu-tab {
-      border: 1px solid transparent;
+      border: none;
       background: transparent;
       border-radius: 9px;
       padding: 9px 8px;
@@ -1854,9 +1854,8 @@
 
     .menu-tab.active {
       background: var(--surface);
-      border-color: var(--border);
       color: var(--accent);
-      box-shadow: 0 1px 3px rgba(18, 26, 47, 0.06);
+      box-shadow: 0 1px 3px rgba(18, 26, 47, 0.08);
     }
 
     .menu-tab.active .tab-badge {
@@ -1868,7 +1867,6 @@
       margin-bottom: 14px;
       padding: 11px 13px;
       border-radius: var(--radius-md);
-      border: 1px solid var(--amber-border);
       background: var(--amber-bg);
       color: var(--amber-text);
       font-size: 13.5px;
@@ -1876,7 +1874,6 @@
     }
 
     .guardrail-alert.danger {
-      border-color: var(--rose-border);
       background: var(--rose-bg);
       color: var(--rose-text);
     }
@@ -1910,7 +1907,7 @@
     }
 
     .seg-btn {
-      border: 1px solid transparent;
+      border: none;
       background: transparent;
       border-radius: 7px;
       padding: 7px 8px;
@@ -1929,10 +1926,9 @@
 
     .seg-btn.active {
       background: var(--surface);
-      border-color: var(--border);
       color: var(--text);
       font-weight: 600;
-      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.06);
+      box-shadow: 0 1px 2px rgba(18, 26, 47, 0.08);
     }
 
     .seg-btn:disabled {
@@ -2057,7 +2053,6 @@
     .final-strip {
       border-radius: var(--radius-md);
       padding: 13px 14px;
-      border: 1px solid var(--emerald-border);
       background: var(--emerald-bg);
       margin-bottom: 14px;
       font-size: 13.5px;
@@ -2066,7 +2061,6 @@
     }
 
     .final-strip.has-due {
-      border-color: var(--amber-border);
       background: var(--amber-bg);
       color: var(--amber-text);
     }
@@ -2101,7 +2095,6 @@
     .pph25-box {
       border-radius: var(--radius-md);
       padding: 13px 14px;
-      border: 1px solid var(--accent-border);
       background: var(--accent-soft);
       color: var(--text);
       font-size: 13.5px;
@@ -2269,7 +2262,6 @@
       padding: 2px 8px;
       border-radius: 999px;
       background: var(--accent-soft);
-      border: 1px solid var(--accent-border);
       color: var(--blue-text);
       font-size: 12px;
       font-weight: 600;
@@ -2278,7 +2270,6 @@
 
     .credit-type-pill.pph24 {
       background: var(--emerald-bg);
-      border-color: var(--emerald-border);
       color: var(--emerald-text);
     }
 
@@ -2303,7 +2294,6 @@
       padding: 7px 10px;
       border-radius: var(--radius-sm);
       background: var(--amber-bg);
-      border: 1px solid var(--amber-border);
       color: var(--amber-text);
       font-size: 12.5px;
       line-height: 1.45;
